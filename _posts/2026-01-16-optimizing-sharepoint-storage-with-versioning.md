@@ -99,6 +99,7 @@ I've also added a script for getting how many Versions were deleted and how much
 
 👉 **SharePoint Versioning Cleanup script**  
 https://github.com/ludwigmoeller/techwithludwig/blob/main/Scripts/Sharepoint%20Versioning%20Cleanup.ps1
+
 👉 **SharePoint Versioning Cleanup report script**  
 https://github.com/ludwigmoeller/techwithludwig/blob/main/Scripts/Sharepoint%20Versioning%20Cleanup%20report.ps1
 
