@@ -127,6 +127,8 @@ Microsoft provides a **Version Usage Report** that shows:
 - The potential impact of version cleanup
 
 This report is generated **inside each site** using a backend job.
+The WhatIf mode generates a Version Usage Report inside each site, because that’s how Microsoft’s backend reporting works.
+I recommend using a dedicated folder or cleaning up the reports once analysis is complete.
 
 ### Important detail
 
