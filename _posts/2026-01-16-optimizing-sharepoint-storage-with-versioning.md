@@ -1,66 +1,67 @@
 ---
 layout: post
-title: "Optimizing SharePoint storage with versioning limits"
+title: "Optimizing SharePoint storage with versioning (and estimating the impact safely)"
 date: 2026-01-16
 categories: [SharePoint, Storage]
 tags: [sharepoint, storage, versioning, powershell, m365]
 ---
 
-## Why SharePoint storage suddenly becomes a problem
+## When SharePoint storage suddenly becomes a problem
 
 SharePoint storage rarely becomes a problem gradually.
 
-In most environments, it looks fine… until it doesn’t.
+In most tenants, everything looks fine… until one day it doesn’t.
 
-One day you notice:
-- Storage alerts firing
-- New sites failing to provision
-- Users unable to upload files
-- Microsoft 365 storage creeping dangerously close to the limit
+Typical symptoms:
+- Storage alerts start firing
+- New sites fail to provision
+- Users can’t upload files
+- The tenant is suddenly *very* close to its storage limit
 
-And when you dig into it, the cause is often **file versioning**.
+When that happens, the root cause is often not user content — it’s **file versioning**.
 
 ---
 
-## The hidden cost of versioning
+## Versioning is useful… and expensive
 
 Versioning in SharePoint is a good thing.  
 It protects users from accidental overwrites and makes recovery easy.
 
-But by default, many document libraries:
-- Keep **hundreds or thousands of versions**
-- Keep them **forever**
-- Across **every file**, including large binaries
+The problem is how it’s commonly configured:
 
-Over time, this quietly consumes massive amounts of storage.
+- Very high (or unlimited) version counts
+- Versions kept indefinitely
+- Large files changing frequently
+- No automatic cleanup
+
+Over time, old file versions quietly consume **huge amounts of storage**.
 
 ---
 
 ## A real-world example
 
-In a recent customer case, SharePoint storage was almost exhausted.
+In a recent customer case, SharePoint storage was nearly exhausted.
 
-- Remaining storage before cleanup: **~90 GB**
-- Remaining storage after cleanup: **~1.3 TB**
+- Available storage before cleanup: **~90 GB**
+- Available storage after cleanup: **~1.3 TB**
 
-No content was deleted.  
+No active files were deleted.  
 No users were impacted.
 
 The only change was **bringing versioning under control**.
 
 ---
 
-## The two settings that actually matter
+## The two controls that actually matter
 
-To keep SharePoint storage healthy long-term, two controls are critical:
+When optimizing SharePoint storage, two settings make the biggest difference:
 
-### 1. Maximum version history
+### 1. Maximum version count
 
 This limits how many versions of a file are kept.
 
-Example:
-- Instead of unlimited versions
-- Keep the **last 50 or 100**
+Instead of keeping hundreds or thousands of versions forever, you might keep:
+- The **latest 50 or 100 versions**
 
 For most users, anything beyond that is never accessed.
 
@@ -68,24 +69,30 @@ For most users, anything beyond that is never accessed.
 
 ### 2. Maximum version age
 
-This removes *old* versions after a defined time period.
+This removes *old* versions automatically.
 
-Example:
+For example:
 - Keep versions for **180 or 365 days**
-- Automatically purge anything older
+- Purge anything older
 
-This is especially effective for large files that change frequently.
+This is especially effective for large files that change often.
 
 ---
 
-## Automating cleanup with PowerShell
+## Automating cleanup at scale
 
-Manually fixing this across sites and libraries doesn’t scale.
+Manually fixing versioning across sites and libraries doesn’t scale.
 
-To solve that, I built a PowerShell script that:
-- Iterates SharePoint sites
-- Applies versioning limits
-- Removes excessive and outdated versions safely
+Microsoft provides a **server-side cleanup mechanism** that:
+- Runs safely in the backend
+- Does not require enumerating files client-side
+- Scales across large tenants
+
+To make this manageable, I built a PowerShell script that:
+
+- Sets tenant-wide versioning defaults
+- Submits **batch cleanup jobs per site**
+- Uses Microsoft’s supported APIs
 
 You can find the script here:
 
@@ -94,44 +101,101 @@ https://github.com/ludwigmoeller/techwithludwig/blob/main/Scripts/Sharepoint%20V
 
 ---
 
-## What the script does (high level)
+## “But how much storage will this actually free up?”
 
-At a high level, the script:
+This is the most important — and most common — question from customers.
 
-- Connects to SharePoint Online
-- Enumerates document libraries
-- Enforces:
-  - Maximum version count
-  - Maximum version age
-- Cleans up excess versions
+And it’s a fair one.
 
-It focuses on **storage optimization**, not content deletion.
+### The wrong approach
+
+Trying to “guess” reclaimable storage client-side by:
+- Enumerating versions manually
+- Estimating percentages
+- Running heuristic calculations
+
+This is **not reliable**, especially when cleanup is handled server-side.
 
 ---
 
-## Important considerations before running it
+## The correct and supported WhatIf approach
 
-Before you run any cleanup:
+Microsoft provides a **Version Usage Report** that shows:
 
-- Validate versioning requirements with the business
-- Exclude libraries with regulatory or legal retention needs
-- Test on a small scope first
-- Expect the cleanup to take time in large tenants
+- How much storage is consumed by file versions
+- Which versions are eligible for expiration
+- The potential impact of version cleanup
 
-This is not a “click and forget” operation — but it *is* predictable and safe when planned properly.
+This report is generated **inside each site** using a backend job.
+
+### Important detail
+
+There is **no native API** that returns:
+> “Exactly how many bytes would be deleted if I ran the cleanup job”
+
+Instead, the supported flow is:
+1. Generate a version usage report
+2. Analyze the report
+3. Decide whether to proceed with cleanup
+
+---
+
+## What the updated script does in WhatIf mode
+
+The script now supports a safe `-WhatIfOnly` mode.
+
+When enabled, it:
+
+- ❌ Does **not** change tenant settings
+- ❌ Does **not** delete any versions
+- ❌ Does **not** submit cleanup jobs
+- ✅ Generates **Version Usage Reports per site**
+- ✅ Tracks report generation status
+- ✅ Outputs report URLs to a CSV
+
+This allows customers to:
+- Review the data
+- Understand the impact
+- Approve cleanup with confidence
+
+---
+
+## Cleanup mode (unchanged behavior)
+
+When run **without** `-WhatIfOnly`, the script:
+
+- Applies tenant-wide versioning defaults
+- Submits `New-SPOSiteFileVersionBatchDeleteJob` per site
+- Lets SharePoint handle cleanup safely in the backend
+
+This is the same supported mechanism Microsoft documents.
+
+---
+
+## Things to consider before running cleanup
+
+Before you enable cleanup in production:
+
+- Validate retention requirements with the business
+- Exclude sites or libraries with legal or regulatory needs
+- Expect cleanup jobs to take time in large tenants
+- Start with reporting first, then cleanup
+
+This is not a “click and forget” operation — but it *is* predictable and safe when planned correctly.
 
 ---
 
 ## Final thoughts
 
-SharePoint storage issues are often self-inflicted, just very well hidden.
+SharePoint storage problems are often self-inflicted — just very well hidden.
 
 Versioning is powerful, but **unbounded versioning is expensive**.
 
-By setting:
-- A reasonable version limit
-- A reasonable version age
+By:
+- Setting reasonable limits
+- Using Microsoft’s supported reporting
+- Running cleanup jobs deliberately
 
-You can reclaim **hundreds of gigabytes or more**, without impacting users or deleting actual files.
+You can reclaim **hundreds of gigabytes or more**, without impacting users or deleting actual content.
 
-If you’re running low on storage, versioning should be one of the **first places you look**.
+If your tenant is running low on storage, versioning should be one of the **first places you look**.
