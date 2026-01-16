@@ -94,10 +94,13 @@ To make this manageable, I built a PowerShell script that:
 - Submits **batch cleanup jobs per site**
 - Uses Microsoft’s supported APIs
 
-You can find the script here:
+You can find the script here. 
+I've also added a script for getting how many Versions were deleted and how much space that released from your tenant:
 
 👉 **SharePoint Versioning Cleanup script**  
 https://github.com/ludwigmoeller/techwithludwig/blob/main/Scripts/Sharepoint%20Versioning%20Cleanup.ps1
+👉 **SharePoint Versioning Cleanup report script**  
+https://github.com/ludwigmoeller/techwithludwig/blob/main/Scripts/Sharepoint%20Versioning%20Cleanup%20report.ps1
 
 ---
 
