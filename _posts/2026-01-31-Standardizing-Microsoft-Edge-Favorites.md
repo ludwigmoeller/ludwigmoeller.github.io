@@ -1,4 +1,9 @@
-# Standardizing Microsoft Edge Favorites (Without Making Users Hate IT)
+---
+title: Standardizing Microsoft Edge Favorites with Global and Department-Specific Policies
+date: 2026-01-31
+categories: [Microsoft Edge, Intune]
+tags: [edge, favorites, intune, endpoint-management]
+---
 
 Everyone bookmarks the same things.
 
