@@ -33,6 +33,7 @@ What we want is surprisingly simple:
 - A setup that scales and doesn’t require constant IT maintenance
 
 And ideally, something users don’t even notice — because it just works.
+Imagine that, starting a new job and just seeing all the relevant links right there in your browser.
 
 ---
 
@@ -42,13 +43,13 @@ The trick is to stop thinking in *one* policy and instead think in **layers**.
 
 ### Layer 1 – Global favorites (everyone gets these)
 
-A managed root folder, for example:
-Company Resources
-├─ MyAccess Portal
-├─ Intranet
-├─ Employee Handbook
-└─ Travel & Expenses
+A managed root folder, for example:  
 
+Company Resources  
+├─ MyAccess Portal  
+├─ Intranet  
+├─ Employee Handbook  
+└─ Travel & Expenses  
 
 This folder:
 - Is enforced by policy
@@ -65,11 +66,11 @@ On top of that baseline, we add **department-specific subfolders**.
 
 For IT users, that might look like this:
 
-Company Resources
-└─ IT
-├─ Service Desk
-├─ Knowledge Base
-└─ Entra Admin page
+Company Resources  
+└─ IT  
+├─ Service Desk  
+├─ Knowledge Base  
+└─ Entra Admin page  
 
 
 HR, Finance, Sales, and others can get their own folders later — but only if they belong to the right group.
@@ -78,19 +79,9 @@ HR, Finance, Sales, and others can get their own folders later — but only if t
 
 ## How Edge actually handles managed favorites
 
-Here’s the important bit.
+Edge doesn't support conditional Logic, so you'll have to create seperate policies per subset of favourites.
 
-:contentReference[oaicite:0]{index=0} does **not** support conditional logic inside a single favorites policy.
-
-There’s no:
-> “If department = IT, then show this folder”
-
-Instead:
-- Favorites are defined using JSON
-- Policies are assigned to users or groups
-- Edge **merges favorites** from all policies that apply
-
-So the “dynamic” behavior comes from **policy assignment**, not from Edge itself.
+THat way, Edge **merges favorites** from all policies that apply
 
 That’s not a limitation — that’s the design we’re going to lean into.
 
@@ -100,7 +91,7 @@ That’s not a limitation — that’s the design we’re going to lean into.
 
 We start with the baseline that everyone gets.
 
-In :contentReference[oaicite:1]{index=1}, create a **Settings Catalog** policy.
+create a **Settings Catalog** policy.
 
 ### Policy name
 
@@ -115,8 +106,6 @@ Microsoft Edge → Configure favorites
 And define:
 - One root folder
 - The links that should exist for **all users**
-
-### Example JSON
 
 ```json
 [
@@ -139,14 +128,14 @@ And define:
     "parent": "Company Resources"
   }
 ]
+```
 
 Assign this policy to All Users.
 
-Once deployed, every user will see the Company Resources folder in Edge.
+Once deployed, every user will see the **Company Resources** folder in Edge.
 
-Extending favorites for the IT department
-
-Now comes the interesting part.
+Now we have the default folder, that should affect everyone.
+Lets extend favorites for the IT department
 
 We don’t touch the global policy.
 We don’t copy it.
@@ -168,12 +157,9 @@ Add an IT subfolder
 Contain only IT-related links
 Be scoped only to IT users
 
-Defining the IT subfolder
-
-In the IT policy, configure the same setting:
+In the IT policy, configure the same setting and in the same way:
 
 Microsoft Edge → Configure favorites
-
 
 This time, do not define a top-level folder.
 
@@ -181,7 +167,7 @@ Only define:
 The IT folder
 The links inside it
 
-Example JSON
+```json
 [
   {
     "name": "IT",
@@ -203,6 +189,9 @@ Example JSON
     "parent": "IT"
   }
 ]
+```
 
 
 That’s it. No duplication. No magic.
+
+Rinse and repeat for all the other departments, and you'll have a great set of favourites for alle the users to enjoy.
