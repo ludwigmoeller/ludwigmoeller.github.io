@@ -1,4 +1,5 @@
-
+const containerName = document.getElementById("containerName");
+const schemaMode = document.getElementById("schemaMode");
 const rootName = document.getElementById("rootName");
 const itemsEl = document.getElementById("items");
 const outputEl = document.getElementById("output");
