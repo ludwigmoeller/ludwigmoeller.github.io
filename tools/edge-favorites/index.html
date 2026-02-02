@@ -1,1 +1,84 @@
 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Edge Managed Favorites Builder</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="container">
+    <h1>Edge Managed Favorites Builder</h1>
+    <p class="muted">
+      Builds Settings Catalog-compatible JSON for <code>Managed favorites</code>.
+      Note: “Managed favorites” label in Edge cannot be renamed.
+    </p>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h2>Top-level folder</h2>
+      <label>
+        Folder name (what users will see inside Managed favorites)
+        <input id="rootName" type="text" value="Company Resources" />
+      </label>
+
+      <div class="row">
+        <button id="addFolder">+ Folder</button>
+        <button id="addLink">+ Link</button>
+      </div>
+
+      <h3>Items</h3>
+      <div id="items"></div>
+    </section>
+
+    <section class="card">
+      <h2>Output</h2>
+      <div class="row">
+        <button id="copyJson">Copy JSON</button>
+        <button id="downloadJson">Download .json</button>
+      </div>
+      <textarea id="output" readonly rows="20"></textarea>
+
+      <details class="mt">
+        <summary>Where to paste in Intune</summary>
+        <ol>
+          <li>Configuration profile → Settings catalog</li>
+          <li>Microsoft Edge → <strong>Managed favorites</strong></li>
+          <li>Paste the JSON as-is (not quoted/escaped)</li>
+        </ol>
+      </details>
+    </section>
+  </main>
+
+  <template id="folderTemplate">
+    <div class="item">
+      <div class="item-head">
+        <span class="badge">Folder</span>
+        <button class="danger jsRemove" title="Remove">✕</button>
+      </div>
+      <label>Folder name <input class="jsName" type="text" placeholder="Marketing" /></label>
+      <label>Parent folder
+        <select class="jsParent"></select>
+      </label>
+    </div>
+  </template>
+
+  <template id="linkTemplate">
+    <div class="item">
+      <div class="item-head">
+        <span class="badge">Link</span>
+        <button class="danger jsRemove" title="Remove">✕</button>
+      </div>
+      <label>Link name <input class="jsName" type="text" placeholder="Adobe Photoshop" /></label>
+      <label>URL <input class="jsUrl" type="url" placeholder="https://…" /></label>
+      <label>Parent folder
+        <select class="jsParent"></select>
+      </label>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
