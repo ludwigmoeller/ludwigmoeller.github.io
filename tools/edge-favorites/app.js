@@ -1,6 +1,8 @@
+/* ========= DOM ========= */
 const containerName = document.getElementById("containerName");
 const schemaMode = document.getElementById("schemaMode");
 const rootName = document.getElementById("rootName");
+
 const itemsEl = document.getElementById("items");
 const outputEl = document.getElementById("output");
 
@@ -12,36 +14,71 @@ const downloadBtn = document.getElementById("downloadJson");
 const folderTemplate = document.getElementById("folderTemplate");
 const linkTemplate = document.getElementById("linkTemplate");
 
-// In-memory model (simple + safe)
+/* ========= STATE ========= */
+/*
+Internal model (schema-agnostic):
+{
+  id,
+  kind: 'folder' | 'link',
+  name,
+  url?,
+  parentId: 'root' | folderId
+}
+*/
 const state = {
-  items: [] // { id, kind:'folder'|'link', name, url?, parentId:'root'|folderId }
+  items: []
 };
 
 const uid = () => crypto.randomUUID();
 
-function getFolderOptions() {
-  const folders = [{ id: "root", name: rootName.value.trim() || "Company Resources" }];
-  for (const it of state.items) {
-    if (it.kind === "folder") folders.push({ id: it.id, name: it.name || "(unnamed folder)" });
+/* ========= HELPERS ========= */
+function normalizeUrl(url) {
+  if (!url) return "";
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    return "https://" + url;
   }
+  return url;
+}
+
+function getFolderOptions() {
+  const folders = [
+    {
+      id: "root",
+      name: rootName.value.trim() || "Company Resources"
+    }
+  ];
+
+  for (const it of state.items) {
+    if (it.kind === "folder") {
+      folders.push({
+        id: it.id,
+        name: it.name || "(unnamed folder)"
+      });
+    }
+  }
+
   return folders;
 }
 
 function refreshParentDropdowns() {
   const options = getFolderOptions();
-  for (const node of itemsEl.querySelectorAll("select.jsParent")) {
-    const current = node.value || "root";
-    node.innerHTML = "";
+
+  for (const select of itemsEl.querySelectorAll("select.jsParent")) {
+    const current = select.value || "root";
+    select.innerHTML = "";
+
     for (const opt of options) {
       const o = document.createElement("option");
       o.value = opt.id;
       o.textContent = opt.name;
-      node.appendChild(o);
+      select.appendChild(o);
     }
-    node.value = options.some(o => o.id === current) ? current : "root";
+
+    select.value = options.some(o => o.id === current) ? current : "root";
   }
 }
 
+/* ========= RENDER ========= */
 function render() {
   itemsEl.innerHTML = "";
 
@@ -49,9 +86,9 @@ function render() {
     const tpl = it.kind === "folder" ? folderTemplate : linkTemplate;
     const node = tpl.content.firstElementChild.cloneNode(true);
 
-    const nameInput = node.querySelector("input.jsName");
-    const parentSelect = node.querySelector("select.jsParent");
-    const removeBtn = node.querySelector("button.jsRemove");
+    const nameInput = node.querySelector(".jsName");
+    const parentSelect = node.querySelector(".jsParent");
+    const removeBtn = node.querySelector(".jsRemove");
 
     nameInput.value = it.name || "";
     parentSelect.value = it.parentId || "root";
@@ -68,8 +105,9 @@ function render() {
     });
 
     if (it.kind === "link") {
-      const urlInput = node.querySelector("input.jsUrl");
+      const urlInput = node.querySelector(".jsUrl");
       urlInput.value = it.url || "";
+
       urlInput.addEventListener("input", () => {
         it.url = urlInput.value;
         updateOutput();
@@ -77,12 +115,16 @@ function render() {
     }
 
     removeBtn.addEventListener("click", () => {
-      // remove item and reparent children to root if needed
       const removeId = it.id;
       state.items = state.items.filter(x => x.id !== removeId);
+
+      // Re-parent orphaned children to root
       for (const x of state.items) {
-        if (x.parentId === removeId) x.parentId = "root";
+        if (x.parentId === removeId) {
+          x.parentId = "root";
+        }
       }
+
       render();
       updateOutput();
     });
@@ -94,61 +136,113 @@ function render() {
   updateOutput();
 }
 
-function buildTree() {
-  // Build folder map
-  const root = {
-    type: "folder",
-    name: rootName.value.trim() || "Company Resources",
-    children: []
-  };
+/* ========= TREE BUILDERS ========= */
+function buildModernChildren(parentId) {
+  const children = [];
 
-  const folders = new Map();
-  folders.set("root", root);
-
-  // Create folder nodes first
-  for (const it of state.items.filter(x => x.kind === "folder")) {
-    folders.set(it.id, { type: "folder", name: it.name?.trim() || "Unnamed folder", children: [] });
-  }
-
-  // Attach folders to parents
-  for (const it of state.items.filter(x => x.kind === "folder")) {
-    const parent = folders.get(it.parentId || "root") || root;
-    const node = folders.get(it.id);
-    parent.children.push(node);
-  }
-
-  // Attach links
-  for (const it of state.items.filter(x => x.kind === "link")) {
-    const parent = folders.get(it.parentId || "root") || root;
-    const name = it.name?.trim() || "Unnamed link";
-    const url = (it.url || "").trim();
-
-    if (!url.startsWith("https://")) {
-      // Keep it in output, but it will be invalid for Edge — warn via placeholder
-      parent.children.push({ type: "url", name, url: url || "INVALID_URL_MISSING_HTTPS" });
+  for (const it of state.items.filter(x => x.parentId === parentId)) {
+    if (it.kind === "folder") {
+      children.push({
+        type: "folder",
+        name: it.name || "Unnamed folder",
+        children: buildModernChildren(it.id)
+      });
     } else {
-      parent.children.push({ type: "url", name, url });
+      children.push({
+        type: "url",
+        name: it.name || "Unnamed link",
+        url: normalizeUrl(it.url)
+      });
     }
   }
 
-  return [root]; // Edge expects a list
+  return children;
 }
 
+function buildLegacyChildren(parentId) {
+  const children = [];
+
+  for (const it of state.items.filter(x => x.parentId === parentId)) {
+    if (it.kind === "folder") {
+      children.push({
+        name: it.name || "Unnamed folder",
+        children: buildLegacyChildren(it.id)
+      });
+    } else {
+      children.push({
+        name: it.name || "Unnamed link",
+        url: normalizeUrl(it.url)
+      });
+    }
+  }
+
+  return children;
+}
+
+/* ========= EXPORTERS ========= */
+function exportModern() {
+  return JSON.stringify(
+    [
+      {
+        type: "folder",
+        name: rootName.value.trim() || "Company Resources",
+        children: buildModernChildren("root")
+      }
+    ],
+    null,
+    2
+  );
+}
+
+function exportLegacy() {
+  const output = [];
+
+  output.push({
+    toplevel_name: containerName.value.trim() || "Managed Favorites"
+  });
+
+  output.push(...buildLegacyChildren("root"));
+
+  return JSON.stringify(output, null, 2);
+}
+
+/* ========= OUTPUT ========= */
 function updateOutput() {
-  const json = JSON.stringify(buildTree(), null, 2);
+  let json;
+
+  if (schemaMode.value === "legacy") {
+    json = exportLegacy();
+  } else {
+    json = exportModern();
+  }
+
   outputEl.value = json;
 }
 
+/* ========= EVENTS ========= */
 addFolderBtn.addEventListener("click", () => {
-  state.items.push({ id: uid(), kind: "folder", name: "", parentId: "root" });
+  state.items.push({
+    id: uid(),
+    kind: "folder",
+    name: "",
+    parentId: "root"
+  });
   render();
 });
 
 addLinkBtn.addEventListener("click", () => {
-  state.items.push({ id: uid(), kind: "link", name: "", url: "", parentId: "root" });
+  state.items.push({
+    id: uid(),
+    kind: "link",
+    name: "",
+    url: "",
+    parentId: "root"
+  });
   render();
 });
 
+schemaMode.addEventListener("change", updateOutput);
+containerName.addEventListener("input", updateOutput);
 rootName.addEventListener("input", () => {
   refreshParentDropdowns();
   updateOutput();
@@ -161,7 +255,9 @@ copyBtn.addEventListener("click", async () => {
 });
 
 downloadBtn.addEventListener("click", () => {
-  const blob = new Blob([outputEl.value], { type: "application/json;charset=utf-8" });
+  const blob = new Blob([outputEl.value], {
+    type: "application/json;charset=utf-8"
+  });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "edge-managed-favorites.json";
@@ -169,5 +265,5 @@ downloadBtn.addEventListener("click", () => {
   URL.revokeObjectURL(a.href);
 });
 
-// Start
+/* ========= INIT ========= */
 render();
