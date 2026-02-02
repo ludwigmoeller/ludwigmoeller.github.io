@@ -1,84 +1,37 @@
+<section class="card">
+  <h2>Top-level container</h2>
 
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Edge Managed Favorites Builder</title>
-  <link rel="stylesheet" href="./styles.css" />
-</head>
-<body>
-  <header class="container">
-    <h1>Edge Managed Favorites Builder</h1>
-    <p class="muted">
-      Builds Settings Catalog-compatible JSON for <code>Managed favorites</code>.
-      Note: “Managed favorites” label in Edge cannot be renamed.
-    </p>
-  </header>
+  <label>
+    Visible container name
+    <input id="containerName" type="text" value="Company Managed Favorites" />
+  </label>
 
-  <main class="container grid">
-    <section class="card">
-      <h2>Top-level folder</h2>
-      <label>
-        Folder name (what users will see inside Managed favorites)
-        <input id="rootName" type="text" value="Company Resources" />
-      </label>
+  <label>
+    Export format
+    <select id="schemaMode">
+      <option value="legacy">Legacy (supports renaming container)</option>
+      <option value="modern">Modern (recommended, no rename)</option>
+    </select>
+  </label>
 
-      <div class="row">
-        <button id="addFolder">+ Folder</button>
-        <button id="addLink">+ Link</button>
-      </div>
+  <p class="muted">
+    Legacy mode uses <code>toplevel_name</code>.  
+    This is supported by Edge today, but not validated by Settings Catalog.
+  </p>
 
-      <h3>Items</h3>
-      <div id="items"></div>
-    </section>
+  <hr />
 
-    <section class="card">
-      <h2>Output</h2>
-      <div class="row">
-        <button id="copyJson">Copy JSON</button>
-        <button id="downloadJson">Download .json</button>
-      </div>
-      <textarea id="output" readonly rows="20"></textarea>
+  <h3>Top-level folder (inside container)</h3>
+  <label>
+    Folder name
+    <input id="rootName" type="text" value="Company Resources" />
+  </label>
 
-      <details class="mt">
-        <summary>Where to paste in Intune</summary>
-        <ol>
-          <li>Configuration profile → Settings catalog</li>
-          <li>Microsoft Edge → <strong>Managed favorites</strong></li>
-          <li>Paste the JSON as-is (not quoted/escaped)</li>
-        </ol>
-      </details>
-    </section>
-  </main>
+  <div class="row">
+    <button id="addFolder">+ Folder</button>
+    <button id="addLink">+ Link</button>
+  </div>
 
-  <template id="folderTemplate">
-    <div class="item">
-      <div class="item-head">
-        <span class="badge">Folder</span>
-        <button class="danger jsRemove" title="Remove">✕</button>
-      </div>
-      <label>Folder name <input class="jsName" type="text" placeholder="Marketing" /></label>
-      <label>Parent folder
-        <select class="jsParent"></select>
-      </label>
-    </div>
-  </template>
-
-  <template id="linkTemplate">
-    <div class="item">
-      <div class="item-head">
-        <span class="badge">Link</span>
-        <button class="danger jsRemove" title="Remove">✕</button>
-      </div>
-      <label>Link name <input class="jsName" type="text" placeholder="Adobe Photoshop" /></label>
-      <label>URL <input class="jsUrl" type="url" placeholder="https://…" /></label>
-      <label>Parent folder
-        <select class="jsParent"></select>
-      </label>
-    </div>
-  </template>
-
-  <script src="./app.js"></script>
-</body>
-</html>
+  <h3>Items</h3>
+  <div id="items"></div>
+</section>
