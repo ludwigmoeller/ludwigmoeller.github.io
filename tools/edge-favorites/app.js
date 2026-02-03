@@ -1,6 +1,5 @@
 /* ========= DOM ========= */
 const containerName = document.getElementById("containerName");
-const schemaMode = document.getElementById("schemaMode");
 const rootName = document.getElementById("rootName");
 
 const itemsEl = document.getElementById("items");
@@ -15,16 +14,6 @@ const folderTemplate = document.getElementById("folderTemplate");
 const linkTemplate = document.getElementById("linkTemplate");
 
 /* ========= STATE ========= */
-/*
-Internal model (schema-agnostic):
-{
-  id,
-  kind: 'folder' | 'link',
-  name,
-  url?,
-  parentId: 'root' | folderId
-}
-*/
 const state = {
   items: []
 };
@@ -118,7 +107,6 @@ function render() {
       const removeId = it.id;
       state.items = state.items.filter(x => x.id !== removeId);
 
-      // Re-parent orphaned children to root
       for (const x of state.items) {
         if (x.parentId === removeId) {
           x.parentId = "root";
@@ -136,29 +124,7 @@ function render() {
   updateOutput();
 }
 
-/* ========= TREE BUILDERS ========= */
-function buildModernChildren(parentId) {
-  const children = [];
-
-  for (const it of state.items.filter(x => x.parentId === parentId)) {
-    if (it.kind === "folder") {
-      children.push({
-        type: "folder",
-        name: it.name || "Unnamed folder",
-        children: buildModernChildren(it.id)
-      });
-    } else {
-      children.push({
-        type: "url",
-        name: it.name || "Unnamed link",
-        url: normalizeUrl(it.url)
-      });
-    }
-  }
-
-  return children;
-}
-
+/* ========= LEGACY EXPORT ========= */
 function buildLegacyChildren(parentId) {
   const children = [];
 
@@ -179,21 +145,6 @@ function buildLegacyChildren(parentId) {
   return children;
 }
 
-/* ========= EXPORTERS ========= */
-function exportModern() {
-  return JSON.stringify(
-    [
-      {
-        type: "folder",
-        name: rootName.value.trim() || "Company Resources",
-        children: buildModernChildren("root")
-      }
-    ],
-    null,
-    2
-  );
-}
-
 function exportLegacy() {
   const output = [];
 
@@ -208,15 +159,7 @@ function exportLegacy() {
 
 /* ========= OUTPUT ========= */
 function updateOutput() {
-  let json;
-
-  if (schemaMode.value === "legacy") {
-    json = exportLegacy();
-  } else {
-    json = exportModern();
-  }
-
-  outputEl.value = json;
+  outputEl.value = exportLegacy();
 }
 
 /* ========= EVENTS ========= */
@@ -241,7 +184,6 @@ addLinkBtn.addEventListener("click", () => {
   render();
 });
 
-schemaMode.addEventListener("change", updateOutput);
 containerName.addEventListener("input", updateOutput);
 rootName.addEventListener("input", () => {
   refreshParentDropdowns();
