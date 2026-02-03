@@ -22,6 +22,16 @@ function toggleTheme() {
   }
 })();
 
+/* ---------------- Helpers ---------------- */
+
+function getTargetByPath(path) {
+  let target = data;
+  for (let i = 0; i < path.length - 1; i++) {
+    target = target[path[i]].children;
+  }
+  return { target, index: path[path.length - 1] };
+}
+
 /* ---------------- Favorites Logic ---------------- */
 
 function updateParents() {
@@ -65,8 +75,52 @@ function addItem() {
   document.getElementById("itemName").value = "";
   document.getElementById("itemUrl").value = "";
 
-  updateParents();
-  renderJson();
+  refresh();
+}
+
+function removeItem(path) {
+  const parts = path.split(".").map(Number);
+
+  if (parts.length === 1) {
+    data.splice(parts[0], 1);
+  } else {
+    const { target, index } = getTargetByPath(parts);
+    target.splice(index, 1);
+  }
+
+  refresh();
+}
+
+/* ---------------- Rendering ---------------- */
+
+function renderTree() {
+  const container = document.getElementById("tree");
+  container.innerHTML = "";
+
+  function walk(items, path = "") {
+    items.forEach((item, index) => {
+      const currentPath = path ? `${path}.${index}` : `${index}`;
+      const div = document.createElement("div");
+      div.className = "item";
+
+      const label = item.url
+        ? `🔗 ${item.name} (${item.url})`
+        : `📁 ${item.name}`;
+
+      div.innerHTML = `
+        ${label}
+        <button onclick="removeItem('${currentPath}')">Remove</button>
+      `;
+
+      container.appendChild(div);
+
+      if (item.children) {
+        walk(item.children, currentPath);
+      }
+    });
+  }
+
+  walk(data);
 }
 
 function renderJson() {
@@ -89,6 +143,12 @@ document
   .getElementById("toplevelName")
   .addEventListener("input", renderJson);
 
+function refresh() {
+  updateParents();
+  renderTree();
+  renderJson();
+}
+
 /* ---------------- Import JSON ---------------- */
 
 function importJson(event) {
@@ -109,8 +169,7 @@ function importJson(event) {
         parsed[0].toplevel_name;
 
       data = parsed.slice(1);
-      updateParents();
-      renderJson();
+      refresh();
     } catch {
       alert("Failed to parse JSON");
     }
@@ -121,5 +180,4 @@ function importJson(event) {
 
 /* ---------------- Init ---------------- */
 
-updateParents();
-renderJson();
+refresh();
