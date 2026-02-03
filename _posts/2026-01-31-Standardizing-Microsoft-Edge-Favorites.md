@@ -1,3 +1,10 @@
+---
+title: Standardizing Microsoft Edge Favorites with Global and Department-Specific Policies
+date: 2026-01-31
+categories: [Microsoft Edge, Intune]
+tags: [edge, favorites, intune, endpoint-management]
+---
+
 Managed Favorites in Microsoft Edge (without the mess)
 
 If you’ve ever joined a new company and spent the first week hunting for the ServiceDesk link, the intranet, or “that one HR page everyone keeps mentioning”, you already understand the problem.
