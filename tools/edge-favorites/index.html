@@ -1,37 +1,32 @@
-<section class="card">
-  <h2>Top-level container</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Managed Favorites Generator</title>
+  <style>
+    body { font-family: system-ui; max-width: 900px; margin: auto; }
+    input, button { margin: 4px; }
+    textarea { width: 100%; height: 300px; }
+    .folder { margin-left: 20px; border-left: 2px solid #ccc; padding-left: 10px; }
+  </style>
+</head>
+<body>
 
-  <label>
-    Visible container name
-    <input id="containerName" type="text" value="Company Managed Favorites" />
-  </label>
+<h1>Managed Favorites Generator</h1>
 
-  <label>
-    Export format
-    <select id="schemaMode">
-      <option value="legacy">Legacy (supports renaming container)</option>
-      <option value="modern">Modern (recommended, no rename)</option>
-    </select>
-  </label>
+<h2>Top-level name</h2>
+<input id="toplevelName" placeholder="My managed favorites folder" />
 
-  <p class="muted">
-    Legacy mode uses <code>toplevel_name</code>.  
-    This is supported by Edge today, but not validated by Settings Catalog.
-  </p>
+<h2>Add item</h2>
+<input id="itemName" placeholder="Name" />
+<input id="itemUrl" placeholder="URL (leave empty for folder)" />
+<select id="parentSelect"></select>
+<button onclick="addItem()">Add</button>
 
-  <hr />
+<h2>Generated JSON</h2>
+<textarea id="output" readonly></textarea>
+<button onclick="copyJson()">Copy to clipboard</button>
 
-  <h3>Top-level folder (inside container)</h3>
-  <label>
-    Folder name
-    <input id="rootName" type="text" value="Company Resources" />
-  </label>
-
-  <div class="row">
-    <button id="addFolder">+ Folder</button>
-    <button id="addLink">+ Link</button>
-  </div>
-
-  <h3>Items</h3>
-  <div id="items"></div>
-</section>
+<script src="app.js"></script>
+</body>
+</html>
