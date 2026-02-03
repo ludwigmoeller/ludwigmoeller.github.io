@@ -1,197 +1,209 @@
----
-title: Standardizing Microsoft Edge Favorites with Global and Department-Specific Policies
-date: 2026-01-31
-categories: [Microsoft Edge, Intune]
-tags: [edge, favorites, intune, endpoint-management]
----
+Managed Favorites in Microsoft Edge (without the mess)
 
-Everyone bookmarks the same things.
+If you’ve ever joined a new company and spent the first week hunting for the ServiceDesk link, the intranet, or “that one HR page everyone keeps mentioning”, you already understand the problem.
 
-The intranet.  
-The access portal.  
-The place where you go when something breaks.
+Managed Favorites in Microsoft Edge is one of those small-but-mighty configurations that quietly removes friction for users and support teams alike. One central place. Same links for everyone. No “where do I find…?” tickets.
 
-And yet, in most organizations, everyone bookmarks them *differently*. Some users have the right links, some have outdated ones, and some just Google their way through the workday and hope for the best.
+Let’s walk through how to configure it properly using Intune, a clean JSON structure, and a generator that saves you from JSON-induced headaches.
 
-This is one of those small things that quietly creates friction.
+Table of Contents
 
-So let’s fix it — properly — by **centrally managing Microsoft Edge favorites**, while still keeping them **relevant to each user**.
+What are Managed Favorites?
 
-No scripts.  
-No extensions.  
-No “please bookmark this” emails.
+Why use Managed Favorites?
 
----
+Example JSON structure
 
-## The goal
+Creating the Intune policy
 
-What we want is surprisingly simple:
+Enabling the Favorites bar (recommended)
 
-- A **single, company-controlled favorites folder**
-- Links that **everyone** should have
-- Additional links that appear **only** for specific departments
-- A setup that scales and doesn’t require constant IT maintenance
+Important limitations to be aware of
 
-And ideally, something users don’t even notice — because it just works.
-Imagine that, starting a new job and just seeing all the relevant links right there in your browser.
+Wrap-up
 
----
+1. What are Managed Favorites?
 
-## The idea: layered favorites
+Managed Favorites allow you to centrally define a set of browser favorites that:
 
-The trick is to stop thinking in *one* policy and instead think in **layers**.
+Appear for all users
 
-### Layer 1 – Global favorites (everyone gets these)
+Cannot be removed by users
 
-A managed root folder, for example:  
+Can be updated centrally
 
-Company Resources  
-├─ MyAccess Portal  
-├─ Intranet  
-├─ Employee Handbook  
-└─ Travel & Expenses  
+Support folders and nesting
 
-This folder:
-- Is enforced by policy
-- Cannot be removed by users
-- Looks the same for everyone
+This is done via policy in Microsoft Edge, typically delivered using Microsoft Intune.
 
-This is your baseline.
+2. Why use Managed Favorites?
 
----
+This is one of those “why aren’t we already doing this?” features.
 
-### Layer 2 – Department-specific favorites
+Managed Favorites are great for:
 
-On top of that baseline, we add **department-specific subfolders**.
+Intranet links
 
-For IT users, that might look like this:
+ServiceDesk portals
 
-Company Resources  
-└─ IT  
-├─ Service Desk  
-├─ Knowledge Base  
-└─ Entra Admin page  
+HR systems
 
+Admin portals
 
-HR, Finance, Sales, and others can get their own folders later — but only if they belong to the right group.
+Onboarding resources
 
----
+Country- or department-specific tools
 
-## How Edge actually handles managed favorites
+They’re always there, and they’re consistent.
 
-Edge doesn't support conditional Logic, so you'll have to create seperate policies per subset of favourites.
+[Inference] In most environments, this reduces onboarding friction and “where is the link?” support requests, based on common enterprise deployment patterns.
 
-THat way, Edge **merges favorites** from all policies that apply
+3. Example JSON structure
 
-That’s not a limitation — that’s the design we’re going to lean into.
-
----
-
-## Creating the global favorites policy
-
-We start with the baseline that everyone gets.
-
-create a **Settings Catalog** policy.
-
-### Policy name
-
-Following the naming convention I usually use:
-Windows – Config – Edge – Favorites – Global
-
-### Configuration
-
-Navigate to:
-Microsoft Edge → Configure favorites
-
-And define:
-- One root folder
-- The links that should exist for **all users**
-
+Below is a realistic, production-ready example of a Managed Favorites JSON. This is exactly the structure Intune expects.
 ```json
 [
   {
-    "toplevel_name": "Company Resources"
+    "toplevel_name": "TechWithLudwig"
   },
   {
-    "name": "MyAccess Portal",
-    "url": "https://myaccess.company.com",
-    "parent": "Company Resources"
+    "name": "APENTO",
+    "url": "www.apento.com"
   },
   {
-    "name": "Intranet",
-    "url": "https://intranet.company.com",
-    "parent": "Company Resources"
+    "name": "ServiceDesk",
+    "url": "servicenow.com"
+  },
+  {
+    "name": "HR Department",
+    "children": [
+      {
+        "name": "Our idol",
+        "url": "https://theoffice.fandom.com/wiki/Toby_Flenderson"
+      },
+      {
+        "name": "Vacation",
+        "url": "hotels.com"
+      }
+    ]
+  },
+  {
+    "name": "IT department",
+    "children": [
+      {
+        "name": "Entra Admin Page",
+        "url": "entra.microsoft.com"
+      }
+    ]
   },
   {
     "name": "Employee Handbook",
-    "url": "https://handbook.company.com",
-    "parent": "Company Resources"
+    "url": "https://en.wikipedia.org/wiki/Employee_handbook"
+  },
+  {
+    "name": "Intranet",
+    "url": "Sharepoint.com"
   }
 ]
 ```
 
-Assign this policy to All Users.
+Yes, you can handcraft this.
 
-Once deployed, every user will see the **Company Resources** folder in Edge.
+No, you probably shouldn’t.
 
-Now we have the default folder, that should affect everyone.
-Lets extend favorites for the IT department
+4. Use the generator instead.
 
-We don’t touch the global policy.
-We don’t copy it.
-We don’t modify it.
+I’ve built a small tool that does exactly one thing:
+Generate valid Managed Favorites JSON without pain.
 
-Instead, we extend it.
+👉 https://techwithludwig.com/tools/edge-favorites/
 
-Creating the IT favorites policy
+With the generator you can:
 
-Create a second Settings Catalog policy in Intune.
+Add links
 
-Policy name
-Windows – Config – Edge – Favorites – IT
+Create folders
 
+Nest items
 
-This policy will:
+Copy-paste directly into Intune
 
-Add an IT subfolder
-Contain only IT-related links
-Be scoped only to IT users
+Less time debugging brackets. More time doing literally anything else.
 
-In the IT policy, configure the same setting and in the same way:
+5. Creating the Intune policy
 
-Microsoft Edge → Configure favorites
+Now for the actual policy.
 
-This time, do not define a top-level folder.
+Policy basics
 
-Only define:
-The IT folder
-The links inside it
+Platform: Windows
 
-```json
-[
-  {
-    "name": "IT",
-    "parent": "Company Resources"
-  },
-  {
-    "name": "Service Desk",
-    "url": "https://support.company.com",
-    "parent": "IT"
-  },
-  {
-    "name": "Knowledge Base",
-    "url": "https://kb.company.com",
-    "parent": "IT"
-  },
-  {
-    "name": "IT Status",
-    "url": "https://status.company.com",
-    "parent": "IT"
-  }
-]
-```
+Profile type: Settings catalog
+
+Name:
+Windows – Config – Edge – Favorites – Global
+
+You can create the policy directly here:
+https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SettingsCatalogWizardBlade/mode/create/platform/windows10/policyType/SettingsCatalogWindows10
+
+Add the setting
+
+Search for Microsoft Edge
+
+Add the setting:
+
+Microsoft Edge > Configure favorites
 
 
-That’s it. No duplication. No magic.
+Paste the JSON generated by the tool
 
-Rinse and repeat for all the other departments, and you'll have a great set of favourites for alle the users to enjoy.
+Save and assign the policy
+
+No ADMX imports. No custom OMA-URI gymnastics.
+
+6. Enable the Favorites bar (highly recommended)
+
+Managed Favorites are nice.
+
+Managed Favorites you can actually see are better.
+
+Add this setting to the same policy:
+
+Microsoft Edge > Enable favorites bar
+
+
+Set it to Enabled.
+
+This ensures the links are always visible and not hidden behind menus. For most users, this dramatically improves discoverability.
+
+7. Important limitation (read this!)
+
+A device cannot have multiple “Configure favorites” policies applied at the same time.
+
+This means:
+
+❌ No overlapping favorites policies
+
+✅ You can create separate policies per department, country, or business unit
+
+⚠️ Just make sure assignments never overlap
+
+[Unverified] Conflict behavior may vary slightly depending on Edge version, but overlapping policies are not supported and should be avoided.
+
+Wrap-up
+
+Managed Favorites is one of those configurations that quietly improves daily life for users while making IT look very organized.
+
+Central control
+
+Easy updates
+
+Consistent experience
+
+Zero user effort
+
+Combine it with a clean naming convention, the Settings Catalog, and a JSON generator, and you’ve got a solution that scales without drama.
+
+If you’re not using this yet — now you are 😉
+
+Happy deploying.
