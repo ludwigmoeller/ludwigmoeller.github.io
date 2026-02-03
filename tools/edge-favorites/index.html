@@ -65,6 +65,21 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .tree {
+      margin-top: 12px;
+      font-family: ui-monospace, monospace;
+    }
+
+    .item {
+      margin-left: 20px;
+    }
+
+    .item button {
+      margin-left: 8px;
+      font-size: 0.8em;
     }
   </style>
 </head>
@@ -88,6 +103,9 @@
   <select id="parentSelect"></select>
   <button onclick="addItem()">Add</button>
 </div>
+
+<h2>Current structure</h2>
+<div id="tree" class="tree"></div>
 
 <h2>Generated JSON</h2>
 <textarea id="output" readonly></textarea>
