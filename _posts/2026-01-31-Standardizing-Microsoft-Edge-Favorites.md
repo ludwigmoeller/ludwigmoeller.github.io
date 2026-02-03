@@ -149,7 +149,7 @@ Now for the actual policy.
   **Windows – Config – Edge – Favorites – Global**
 
 You can create the policy directly here:
-https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SettingsCatalogWizardBlade/mode/create/platform/windows10/policyType/SettingsCatalogWindows10
+<https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SettingsCatalogWizardBlade/mode/create/platform/windows10/policyType/SettingsCatalogWindows10>
 
 ---
 
