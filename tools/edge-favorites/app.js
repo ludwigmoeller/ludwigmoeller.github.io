@@ -1,5 +1,29 @@
 let data = [];
 
+/* ---------------- Theme ---------------- */
+
+function applyTheme(theme) {
+  document.body.classList.toggle("dark", theme === "dark");
+  localStorage.setItem("theme", theme);
+}
+
+function toggleTheme() {
+  applyTheme(
+    document.body.classList.contains("dark") ? "light" : "dark"
+  );
+}
+
+(function () {
+  const saved = localStorage.getItem("theme");
+  if (saved) {
+    applyTheme(saved);
+  } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    applyTheme("dark");
+  }
+})();
+
+/* ---------------- Favorites Logic ---------------- */
+
 function updateParents() {
   const select = document.getElementById("parentSelect");
   select.innerHTML = `<option value="">(Top level)</option>`;
@@ -61,8 +85,41 @@ function copyJson() {
   );
 }
 
-document.getElementById("toplevelName")
+document
+  .getElementById("toplevelName")
   .addEventListener("input", renderJson);
+
+/* ---------------- Import JSON ---------------- */
+
+function importJson(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+
+      if (!Array.isArray(parsed) || !parsed[0]?.toplevel_name) {
+        alert("Invalid Managed Favorites JSON");
+        return;
+      }
+
+      document.getElementById("toplevelName").value =
+        parsed[0].toplevel_name;
+
+      data = parsed.slice(1);
+      updateParents();
+      renderJson();
+    } catch {
+      alert("Failed to parse JSON");
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+/* ---------------- Init ---------------- */
 
 updateParents();
 renderJson();
