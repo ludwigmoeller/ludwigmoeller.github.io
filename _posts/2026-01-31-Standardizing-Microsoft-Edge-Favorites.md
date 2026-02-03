@@ -18,12 +18,12 @@ Let’s walk through how to configure it properly using Intune, a clean JSON str
 
 ## Table of Contents
 
-1. [What are Managed Favorites?](#1-what-are-managed-favorites)
-2. [Why use Managed Favorites?](#2-why-use-managed-favorites)
-3. [Example JSON structure](#3-example-json-structure)
-4. [Creating the Intune policy](#4-creating-the-intune-policy)
-5. [Enabling the Favorites bar](#5-enabling-the-favorites-bar-highly-recommended)
-6. [Important limitations](#6-important-limitation-read-this)
+1. [What are Managed Favorites?](#what-are-managed-favorites)
+2. [Why use Managed Favorites?](#why-use-managed-favorites)
+3. [Example JSON structure](#example-json-structure)
+4. [Creating the Intune policy](#creating-the-intune-policy)
+5. [Enabling the Favorites bar](#enable-the-favorites-bar-highly-recommended)
+6. [Important limitations](#important-limitation)
 7. [Wrap-up](#wrap-up)
 
 ---
