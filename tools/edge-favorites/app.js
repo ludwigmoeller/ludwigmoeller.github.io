@@ -1,6 +1,15 @@
 let data = [];
 let dragSourcePath = null;
 
+/* -------- DOM references (FIX) -------- */
+
+const toplevelNameInput = document.getElementById("toplevelName");
+const outputArea = document.getElementById("output");
+const treeContainer = document.getElementById("tree");
+const parentSelect = document.getElementById("parentSelect");
+const itemNameInput = document.getElementById("itemName");
+const itemUrlInput = document.getElementById("itemUrl");
+
 /* ---------------- Theme ---------------- */
 
 function applyTheme(theme) {
@@ -41,14 +50,13 @@ function getParentAndIndex(path) {
 /* ---------------- Favorites Logic ---------------- */
 
 function updateParents() {
-  const select = document.getElementById("parentSelect");
-  select.innerHTML = `<option value="">(Top level)</option>`;
+  parentSelect.innerHTML = `<option value="">(Top level)</option>`;
 
   function walk(items, path = "") {
     items.forEach((item, index) => {
       if (item.children) {
         const id = path + index;
-        select.innerHTML += `<option value="${id}">${item.name}</option>`;
+        parentSelect.innerHTML += `<option value="${id}">${item.name}</option>`;
         walk(item.children, id + ".");
       }
     });
@@ -58,8 +66,8 @@ function updateParents() {
 }
 
 function addItem() {
-  const name = itemName.value.trim();
-  const url = itemUrl.value.trim();
+  const name = itemNameInput.value.trim();
+  const url = itemUrlInput.value.trim();
   const parentPath = parentSelect.value;
 
   if (!name) return;
@@ -73,14 +81,14 @@ function addItem() {
     target.push(newItem);
   }
 
-  itemName.value = "";
-  itemUrl.value = "";
+  itemNameInput.value = "";
+  itemUrlInput.value = "";
 
   refresh();
 }
 
 function removeItem(path) {
-  const { parent, index } = getParentAndIndex(path);
+  const { parent, index } = getParentAndIndex(path.split(".").map(Number));
   parent.splice(index, 1);
   refresh();
 }
@@ -107,8 +115,7 @@ function onDrop(targetPath) {
 /* ---------------- Rendering ---------------- */
 
 function renderTree() {
-  const tree = document.getElementById("tree");
-  tree.innerHTML = "";
+  treeContainer.innerHTML = "";
 
   function walk(items, path = "") {
     items.forEach((item, index) => {
@@ -132,7 +139,7 @@ function renderTree() {
         <button onclick="removeItem('${currentPath}')">✕</button>
       `;
 
-      tree.appendChild(div);
+      treeContainer.appendChild(div);
 
       if (item.children) walk(item.children, currentPath);
     });
@@ -149,7 +156,7 @@ function renameItem(path, value) {
 
 function renderJson() {
   const output = [
-    { toplevel_name: toplevelName.value || "" },
+    { toplevel_name: toplevelNameInput.value || "" },
     ...data
   ];
   outputArea.value = JSON.stringify(output, null, 2);
@@ -159,7 +166,7 @@ function copyJson() {
   navigator.clipboard.writeText(outputArea.value);
 }
 
-toplevelName.addEventListener("input", renderJson);
+toplevelNameInput.addEventListener("input", renderJson);
 
 /* ---------------- Import JSON ---------------- */
 
@@ -175,7 +182,7 @@ function importJson(event) {
       return;
     }
 
-    toplevelName.value = parsed[0].toplevel_name;
+    toplevelNameInput.value = parsed[0].toplevel_name;
     data = parsed.slice(1);
     refresh();
   };
