@@ -124,7 +124,7 @@ No, you probably shouldn’t.
 I’ve built a small tool that does exactly one thing:
 Generate valid Managed Favorites JSON without pain.
 
-👉 https://techwithludwig.com/tools/edge-favorites/
+👉 <https://techwithludwig.com/tools/edge-favorites/>
 
 With the generator you can:
 
