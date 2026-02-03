@@ -127,11 +127,12 @@ Generate valid Managed Favorites JSON without pain.
 
 With the generator you can:
 
- -Add links
- -Create folders
- -Nest items
- -Copy-paste directly into Intune
- -Less time debugging brackets. More time doing literally anything else.
+- Add links
+- Create folders
+- Nest items
+- Copy-paste directly into Intune
+- Less time debugging brackets. More time doing literally anything else.
+
 
 ---
 
@@ -186,9 +187,10 @@ A device cannot have multiple “Configure favorites” policies applied at the 
 
 This means:
 
-❌ No overlapping favorites policies
-✅ You can create separate policies per department, country, or business unit
-⚠️ Just make sure assignments never overlap
+- ❌ No overlapping favorites policies
+- ✅ You can create separate policies per department, country, or business unit
+- ⚠️ Just make sure assignments never overlap
+
 
 Overlapping policies are not supported and should be avoided.
 
@@ -198,10 +200,11 @@ Overlapping policies are not supported and should be avoided.
 
 Managed Favorites is one of those configurations that quietly improves daily life for users while making IT look very organized.
 
- -Central control
- -Easy updates
- -Consistent experience
- -Zero user effort
+- Central control
+- Easy updates
+- Consistent experience
+- Zero user effort
+
 
 Combine it with a clean naming convention, the Settings Catalog, and a JSON generator, and you’ve got a solution that scales without drama.
 
