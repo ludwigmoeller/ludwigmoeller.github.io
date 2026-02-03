@@ -3,6 +3,7 @@ title: Standardizing Microsoft Edge Favorites with Global and Department-Specifi
 date: 2026-01-31
 categories: [Microsoft Edge, Intune]
 tags: [edge, favorites, intune, endpoint-management]
+toc: true
 ---
 
 # Managed Favorites in Microsoft Edge (without the mess)
