@@ -8,18 +8,16 @@
     :root {
       --bg: #ffffff;
       --text: #000000;
-      --input-bg: #f3f3f3;
+      --panel: #f7f7f7;
       --border: #cccccc;
-      --button-bg: #e0e0e0;
       --hover: #d0d0d0;
     }
 
     body.dark {
       --bg: #0f1115;
       --text: #e6e6e6;
-      --input-bg: #1b1e24;
+      --panel: #1b1e24;
       --border: #333;
-      --button-bg: #2a2f3a;
       --hover: #2f3542;
     }
 
@@ -27,13 +25,13 @@
       background: var(--bg);
       color: var(--text);
       font-family: system-ui;
-      max-width: 900px;
+      max-width: 1100px;
       margin: auto;
       padding: 20px;
     }
 
     input, select, textarea {
-      background: var(--input-bg);
+      background: var(--panel);
       color: var(--text);
       border: 1px solid var(--border);
       padding: 6px;
@@ -42,12 +40,12 @@
 
     textarea {
       width: 100%;
-      height: 320px;
+      height: 260px;
       font-family: ui-monospace, monospace;
     }
 
     button {
-      background: var(--button-bg);
+      background: var(--panel);
       color: var(--text);
       border: 1px solid var(--border);
       padding: 6px 10px;
@@ -55,26 +53,22 @@
       cursor: pointer;
     }
 
-    .row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
     }
 
-    .tree {
-      margin-top: 12px;
-      font-family: ui-monospace, monospace;
+    .tree, .preview {
+      background: var(--panel);
+      padding: 12px;
+      border-radius: 6px;
     }
 
     .item {
-      margin-left: 20px;
+      margin-left: 16px;
       padding: 4px;
       border-radius: 4px;
-    }
-
-    .item[draggable="true"] {
-      cursor: grab;
     }
 
     .item.drag-over {
@@ -82,16 +76,21 @@
     }
 
     .name {
-      border: none;
       background: transparent;
+      border: none;
       color: inherit;
       font-family: inherit;
-      width: 220px;
+      width: 200px;
     }
 
     .name:focus {
       outline: 1px solid var(--border);
-      background: var(--input-bg);
+      background: var(--bg);
+    }
+
+    .preview ul {
+      list-style: none;
+      padding-left: 16px;
     }
   </style>
 </head>
@@ -100,24 +99,29 @@
 
 <h1>Managed Favorites Generator</h1>
 
-<div class="row">
-  <button onclick="toggleTheme()">🌙 / ☀️ Theme</button>
-  <input type="file" accept=".json" onchange="importJson(event)" />
-</div>
+<button onclick="toggleTheme()">🌙 / ☀️ Theme</button>
+<input type="file" accept=".json" onchange="importJson(event)" />
 
 <h2>Top-level name</h2>
 <input id="toplevelName" placeholder="My managed favorites folder" />
 
 <h2>Add item</h2>
-<div class="row">
-  <input id="itemName" placeholder="Name" />
-  <input id="itemUrl" placeholder="URL (leave empty = folder)" />
-  <select id="parentSelect"></select>
-  <button onclick="addItem()">Add</button>
-</div>
+<input id="itemName" placeholder="Name" />
+<input id="itemUrl" placeholder="URL (leave empty = folder)" />
+<select id="parentSelect"></select>
+<button onclick="addItem()">Add</button>
 
-<h2>Current structure</h2>
-<div id="tree" class="tree"></div>
+<div class="layout">
+  <div>
+    <h2>Editor (drag, drop, rename)</h2>
+    <div id="tree" class="tree"></div>
+  </div>
+
+  <div>
+    <h2>Visualizer (user view)</h2>
+    <div id="preview" class="preview"></div>
+  </div>
+</div>
 
 <h2>Generated JSON</h2>
 <textarea id="output" readonly></textarea>
