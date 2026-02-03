@@ -1,200 +1,180 @@
 let data = [];
 let dragSourcePath = null;
 
-/* -------- DOM references (FIX) -------- */
-
-const toplevelNameInput = document.getElementById("toplevelName");
-const outputArea = document.getElementById("output");
-const treeContainer = document.getElementById("tree");
+/* DOM */
+const toplevelInput = document.getElementById("toplevelName");
+const tree = document.getElementById("tree");
+const preview = document.getElementById("preview");
+const output = document.getElementById("output");
 const parentSelect = document.getElementById("parentSelect");
-const itemNameInput = document.getElementById("itemName");
-const itemUrlInput = document.getElementById("itemUrl");
 
-/* ---------------- Theme ---------------- */
-
-function applyTheme(theme) {
-  document.body.classList.toggle("dark", theme === "dark");
-  localStorage.setItem("theme", theme);
-}
+/* ---------- Theme ---------- */
 
 function toggleTheme() {
-  applyTheme(document.body.classList.contains("dark") ? "light" : "dark");
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark"));
 }
 
-(function () {
-  const saved = localStorage.getItem("theme");
-  if (saved) applyTheme(saved);
-  else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-    applyTheme("dark");
-})();
+if (localStorage.getItem("theme") === "true") document.body.classList.add("dark");
 
-/* ---------------- Helpers ---------------- */
+/* ---------- Helpers ---------- */
 
-function getItemByPath(path) {
-  let ref = data;
-  for (let i = 0; i < path.length; i++) {
-    ref = ref[path[i]];
-    if (ref.children && i < path.length - 1) ref = ref.children;
-  }
-  return ref;
+function getItem(path) {
+  return path.reduce((a, i) => a[i].children ?? a, data);
 }
 
-function getParentAndIndex(path) {
-  let parent = data;
-  for (let i = 0; i < path.length - 1; i++) {
-    parent = parent[path[i]].children;
-  }
-  return { parent, index: path[path.length - 1] };
+function getParent(path) {
+  return path.length === 1
+    ? data
+    : getItem(path.slice(0, -1));
 }
 
-/* ---------------- Favorites Logic ---------------- */
-
-function updateParents() {
-  parentSelect.innerHTML = `<option value="">(Top level)</option>`;
-
-  function walk(items, path = "") {
-    items.forEach((item, index) => {
-      if (item.children) {
-        const id = path + index;
-        parentSelect.innerHTML += `<option value="${id}">${item.name}</option>`;
-        walk(item.children, id + ".");
-      }
-    });
-  }
-
-  walk(data);
-}
+/* ---------- Core ---------- */
 
 function addItem() {
-  const name = itemNameInput.value.trim();
-  const url = itemUrlInput.value.trim();
-  const parentPath = parentSelect.value;
-
+  const name = itemName.value.trim();
   if (!name) return;
 
-  const newItem = url ? { name, url } : { name, children: [] };
+  const url = itemUrl.value.trim();
+  const parent = parentSelect.value
+    ? getItem(parentSelect.value.split(".").map(Number))
+    : data;
 
-  if (!parentPath) data.push(newItem);
-  else {
-    let target = data;
-    parentPath.split(".").forEach(i => (target = target[i].children));
-    target.push(newItem);
-  }
-
-  itemNameInput.value = "";
-  itemUrlInput.value = "";
-
+  parent.push(url ? { name, url } : { name, children: [] });
+  itemName.value = itemUrl.value = "";
   refresh();
+}
+
+function renameItem(path, value) {
+  const parent = getParent(path);
+  parent[path.at(-1)].name = value;
+  refresh(false);
 }
 
 function removeItem(path) {
-  const { parent, index } = getParentAndIndex(path.split(".").map(Number));
-  parent.splice(index, 1);
+  getParent(path).splice(path.at(-1), 1);
   refresh();
 }
 
-/* ---------------- Drag & Drop ---------------- */
+/* ---------- Drag & Drop ---------- */
 
-function onDragStart(path) {
+function dragStart(path) {
   dragSourcePath = path;
 }
 
-function onDrop(targetPath) {
-  if (!dragSourcePath || dragSourcePath === targetPath) return;
+function dropOn(targetPath, intoFolder) {
+  if (!dragSourcePath) return;
 
-  const src = getParentAndIndex(dragSourcePath.split(".").map(Number));
-  const dst = getParentAndIndex(targetPath.split(".").map(Number));
+  const srcParent = getParent(dragSourcePath);
+  const item = srcParent.splice(dragSourcePath.at(-1), 1)[0];
 
-  const [item] = src.parent.splice(src.index, 1);
-  dst.parent.splice(dst.index, 0, item);
+  let target;
+  if (intoFolder) {
+    target = getParent(targetPath)[targetPath.at(-1)].children;
+  } else {
+    target = getParent(targetPath);
+  }
 
+  target.push(item);
   dragSourcePath = null;
   refresh();
 }
 
-/* ---------------- Rendering ---------------- */
+/* ---------- Rendering ---------- */
 
 function renderTree() {
-  treeContainer.innerHTML = "";
+  tree.innerHTML = "";
 
-  function walk(items, path = "") {
-    items.forEach((item, index) => {
-      const currentPath = path ? `${path}.${index}` : `${index}`;
+  function walk(items, path = []) {
+    items.forEach((item, i) => {
+      const p = [...path, i];
       const div = document.createElement("div");
       div.className = "item";
       div.draggable = true;
 
-      div.ondragstart = () => onDragStart(currentPath);
+      div.ondragstart = () => dragStart(p);
       div.ondragover = e => {
         e.preventDefault();
         div.classList.add("drag-over");
       };
       div.ondragleave = () => div.classList.remove("drag-over");
-      div.ondrop = () => onDrop(currentPath);
+      div.ondrop = () =>
+        dropOn(p, !!item.children);
 
       div.innerHTML = `
-        ${item.url ? "🔗" : "📁"}
+        ${item.children ? "📁" : "🔗"}
         <input class="name" value="${item.name}"
-          oninput="renameItem('${currentPath}', this.value)" />
-        <button onclick="removeItem('${currentPath}')">✕</button>
+          oninput="renameItem(${JSON.stringify(p)}, this.value)" />
+        <button onclick="removeItem(${JSON.stringify(p)})">✕</button>
       `;
+      tree.appendChild(div);
 
-      treeContainer.appendChild(div);
-
-      if (item.children) walk(item.children, currentPath);
+      if (item.children) walk(item.children, p);
     });
   }
 
   walk(data);
 }
 
-function renameItem(path, value) {
-  const item = getItemByPath(path.split(".").map(Number));
-  item.name = value;
-  renderJson();
+function renderPreview() {
+  preview.innerHTML = `<strong>${toplevelInput.value}</strong>`;
+
+  function walk(items) {
+    const ul = document.createElement("ul");
+    items.forEach(i => {
+      const li = document.createElement("li");
+      li.textContent = i.name;
+      if (i.children) li.appendChild(walk(i.children));
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+
+  preview.appendChild(walk(data));
 }
 
 function renderJson() {
-  const output = [
-    { toplevel_name: toplevelNameInput.value || "" },
-    ...data
-  ];
-  outputArea.value = JSON.stringify(output, null, 2);
+  output.value = JSON.stringify(
+    [{ toplevel_name: toplevelInput.value }, ...data],
+    null,
+    2
+  );
 }
 
-function copyJson() {
-  navigator.clipboard.writeText(outputArea.value);
+function refresh(full = true) {
+  if (full) updateParents();
+  renderTree();
+  renderPreview();
+  renderJson();
 }
 
-toplevelNameInput.addEventListener("input", renderJson);
+function updateParents() {
+  parentSelect.innerHTML = `<option value="">(Top level)</option>`;
+  function walk(items, path = "") {
+    items.forEach((i, idx) => {
+      if (i.children) {
+        const p = path + idx;
+        parentSelect.innerHTML += `<option value="${p}">${i.name}</option>`;
+        walk(i.children, p + ".");
+      }
+    });
+  }
+  walk(data);
+}
 
-/* ---------------- Import JSON ---------------- */
+/* ---------- Import ---------- */
 
-function importJson(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
+function importJson(e) {
   const reader = new FileReader();
-  reader.onload = e => {
-    const parsed = JSON.parse(e.target.result);
-    if (!parsed?.[0]?.toplevel_name) {
-      alert("Invalid Managed Favorites JSON");
-      return;
-    }
-
-    toplevelNameInput.value = parsed[0].toplevel_name;
+  reader.onload = ev => {
+    const parsed = JSON.parse(ev.target.result);
+    toplevelInput.value = parsed[0].toplevel_name;
     data = parsed.slice(1);
     refresh();
   };
-  reader.readAsText(file);
+  reader.readAsText(e.target.files[0]);
 }
 
-/* ---------------- Init ---------------- */
-
-function refresh() {
-  updateParents();
-  renderTree();
-  renderJson();
-}
+toplevelInput.addEventListener("input", renderJson);
 
 refresh();
