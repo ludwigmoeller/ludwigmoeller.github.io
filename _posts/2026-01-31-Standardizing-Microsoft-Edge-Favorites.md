@@ -30,7 +30,7 @@ Let’s walk through how to configure it properly using Intune, a clean JSON str
 
 ---
 
-## 1. What are Managed Favorites?
+## What are Managed Favorites?
 
 Managed Favorites allow you to centrally define a set of browser favorites that:
 
@@ -43,7 +43,7 @@ This is done via policy in Microsoft Edge, typically delivered using Microsoft I
 
 ---
 
-## 2. Why use Managed Favorites?
+## Why use Managed Favorites?
 
 This is one of those “why aren’t we already doing this?” features.
 
@@ -62,7 +62,7 @@ In most environments, this reduces onboarding friction and “where is the link?
 
 ---
 
-## 3. Example JSON structure
+## Example JSON structure
 
 Below is a **realistic, production-ready example** of a Managed Favorites JSON.  
 This is exactly the structure Intune expects.
@@ -119,7 +119,7 @@ No, you probably shouldn’t.
 
 ---
 
-## 4. Use the generator instead.
+## Use the generator instead.
 
 I’ve built a small tool that does exactly one thing:
 Generate valid Managed Favorites JSON without pain.
@@ -137,7 +137,7 @@ With the generator you can:
 
 ---
 
-## 5. Creating the Intune policy
+## Creating the Intune policy
 
 Now for the actual policy.
 
@@ -166,7 +166,7 @@ https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SettingsCatalogWiz
 
 ---
 
-## 6. Enable the Favorites bar (highly recommended)
+## Enable the Favorites bar (highly recommended)
 
 Managed Favorites are nice.
 
@@ -182,7 +182,7 @@ This ensures the links are always visible and not hidden behind menus. For most 
 
 ---
 
-## 7. Important limitation!
+## Important limitation!
 
 A device cannot have multiple “Configure favorites” policies applied at the same time.
 
