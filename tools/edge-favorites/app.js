@@ -1,12 +1,16 @@
 let data = [];
 let dragSourcePath = null;
 
-/* DOM */
+/* ---------- DOM ---------- */
+
 const toplevelInput = document.getElementById("toplevelName");
 const tree = document.getElementById("tree");
 const preview = document.getElementById("preview");
 const output = document.getElementById("output");
 const parentSelect = document.getElementById("parentSelect");
+const itemName = document.getElementById("itemName");
+const itemUrl = document.getElementById("itemUrl");
+const rootDrop = document.getElementById("rootDrop");
 
 /* ---------- Theme ---------- */
 
@@ -15,18 +19,18 @@ function toggleTheme() {
   localStorage.setItem("theme", document.body.classList.contains("dark"));
 }
 
-if (localStorage.getItem("theme") === "true") document.body.classList.add("dark");
+if (localStorage.getItem("theme") === "true") {
+  document.body.classList.add("dark");
+}
 
 /* ---------- Helpers ---------- */
 
-function getItem(path) {
-  return path.reduce((a, i) => a[i].children ?? a, data);
-}
-
 function getParent(path) {
-  return path.length === 1
-    ? data
-    : getItem(path.slice(0, -1));
+  let ref = data;
+  for (let i = 0; i < path.length - 1; i++) {
+    ref = ref[path[i]].children;
+  }
+  return ref;
 }
 
 /* ---------- Core ---------- */
@@ -36,19 +40,24 @@ function addItem() {
   if (!name) return;
 
   const url = itemUrl.value.trim();
-  const parent = parentSelect.value
-    ? getItem(parentSelect.value.split(".").map(Number))
-    : data;
+  let target = data;
 
-  parent.push(url ? { name, url } : { name, children: [] });
-  itemName.value = itemUrl.value = "";
+  if (parentSelect.value) {
+    parentSelect.value.split(".").forEach(i => {
+      target = target[Number(i)].children;
+    });
+  }
+
+  target.push(url ? { name, url } : { name, children: [] });
+
+  itemName.value = "";
+  itemUrl.value = "";
   refresh();
 }
 
 function renameItem(path, value) {
-  const parent = getParent(path);
-  parent[path.at(-1)].name = value;
-  refresh(false);
+  getParent(path)[path.at(-1)].name = value;
+  renderJson();
 }
 
 function removeItem(path) {
@@ -62,7 +71,7 @@ function dragStart(path) {
   dragSourcePath = path;
 }
 
-function dropOn(targetPath, intoFolder) {
+function dropInto(targetPath, intoFolder) {
   if (!dragSourcePath) return;
 
   const srcParent = getParent(dragSourcePath);
@@ -80,16 +89,26 @@ function dropOn(targetPath, intoFolder) {
   refresh();
 }
 
+rootDrop.ondragover = e => e.preventDefault();
+rootDrop.ondrop = () => {
+  if (!dragSourcePath) return;
+  const srcParent = getParent(dragSourcePath);
+  const item = srcParent.splice(dragSourcePath.at(-1), 1)[0];
+  data.push(item);
+  dragSourcePath = null;
+  refresh();
+};
+
 /* ---------- Rendering ---------- */
 
 function renderTree() {
   tree.innerHTML = "";
 
   function walk(items, path = []) {
-    items.forEach((item, i) => {
-      const p = [...path, i];
+    items.forEach((item, index) => {
+      const p = [...path, index];
       const div = document.createElement("div");
-      div.className = "item";
+      div.className = "tree-item";
       div.draggable = true;
 
       div.ondragstart = () => dragStart(p);
@@ -98,17 +117,16 @@ function renderTree() {
         div.classList.add("drag-over");
       };
       div.ondragleave = () => div.classList.remove("drag-over");
-      div.ondrop = () =>
-        dropOn(p, !!item.children);
+      div.ondrop = () => dropInto(p, !!item.children);
 
       div.innerHTML = `
         ${item.children ? "📁" : "🔗"}
-        <input class="name" value="${item.name}"
+        <input value="${item.name}"
           oninput="renameItem(${JSON.stringify(p)}, this.value)" />
         <button onclick="removeItem(${JSON.stringify(p)})">✕</button>
       `;
-      tree.appendChild(div);
 
+      tree.appendChild(div);
       if (item.children) walk(item.children, p);
     });
   }
@@ -117,20 +135,40 @@ function renderTree() {
 }
 
 function renderPreview() {
-  preview.innerHTML = `<strong>${toplevelInput.value}</strong>`;
+  preview.innerHTML = "";
 
-  function walk(items) {
-    const ul = document.createElement("ul");
-    items.forEach(i => {
-      const li = document.createElement("li");
-      li.textContent = i.name;
-      if (i.children) li.appendChild(walk(i.children));
-      ul.appendChild(li);
+  const menu = document.createElement("div");
+  menu.className = "edge-menu";
+
+  function buildColumn(items) {
+    const col = document.createElement("div");
+    col.className = "edge-column";
+
+    items.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "edge-item";
+      row.innerHTML = `
+        <span>${item.children ? "📁" : "🌐"} ${item.name}</span>
+        ${item.children ? "▶" : ""}
+      `;
+
+      if (item.children) {
+        row.onmouseenter = () => {
+          while (menu.children.length > [...menu.children].indexOf(col) + 1) {
+            menu.removeChild(menu.lastChild);
+          }
+          menu.appendChild(buildColumn(item.children));
+        };
+      }
+
+      col.appendChild(row);
     });
-    return ul;
+
+    return col;
   }
 
-  preview.appendChild(walk(data));
+  menu.appendChild(buildColumn(data));
+  preview.appendChild(menu);
 }
 
 function renderJson() {
@@ -141,25 +179,27 @@ function renderJson() {
   );
 }
 
-function refresh(full = true) {
-  if (full) updateParents();
-  renderTree();
-  renderPreview();
-  renderJson();
-}
-
 function updateParents() {
   parentSelect.innerHTML = `<option value="">(Top level)</option>`;
+
   function walk(items, path = "") {
-    items.forEach((i, idx) => {
-      if (i.children) {
-        const p = path + idx;
-        parentSelect.innerHTML += `<option value="${p}">${i.name}</option>`;
-        walk(i.children, p + ".");
+    items.forEach((item, index) => {
+      if (item.children) {
+        const p = path + index;
+        parentSelect.innerHTML += `<option value="${p}">${item.name}</option>`;
+        walk(item.children, p + ".");
       }
     });
   }
+
   walk(data);
+}
+
+function refresh() {
+  updateParents();
+  renderTree();
+  renderPreview();
+  renderJson();
 }
 
 /* ---------- Import ---------- */
@@ -168,6 +208,10 @@ function importJson(e) {
   const reader = new FileReader();
   reader.onload = ev => {
     const parsed = JSON.parse(ev.target.result);
+    if (!parsed?.[0]?.toplevel_name) {
+      alert("Invalid Managed Favorites JSON");
+      return;
+    }
     toplevelInput.value = parsed[0].toplevel_name;
     data = parsed.slice(1);
     refresh();
@@ -176,5 +220,7 @@ function importJson(e) {
 }
 
 toplevelInput.addEventListener("input", renderJson);
+
+/* ---------- Init ---------- */
 
 refresh();
