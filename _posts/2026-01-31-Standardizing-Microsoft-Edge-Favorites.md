@@ -118,6 +118,10 @@ I’ve built a small tool that does exactly one thing:
 
 Generate valid Managed Favorites JSON without pain.
 
+You can find it here:
+
+👉 [Microsoft Edge Favorites JSON Generator](https://techwithludwig.com/tools/edge-favorites/)
+
 With the generator you can:
 
 - Add links
@@ -140,7 +144,7 @@ Now for the actual policy.
 - **Profile type:** Settings catalog
 - **Name:** **Windows - Config - Edge**
 
-You can create the policy directly here:
+You can use the generated JSON from the [Microsoft Edge Favorites JSON Generator](https://techwithludwig.com/tools/edge-favorites/) directly in the Intune Settings Catalog.
 
 ### Add the setting
 
@@ -188,7 +192,7 @@ Managed Favorites is one of those configurations that quietly improves daily lif
 - Consistent experience
 - Zero user effort
 
-Combine it with a clean naming convention, the Settings Catalog, and a JSON generator, and you’ve got a solution that scales without drama.
+Combine it with a clean naming convention, the Settings Catalog, and the [Microsoft Edge Favorites JSON Generator](https://techwithludwig.com/tools/edge-favorites/), and you’ve got a solution that scales without drama.
 
 If you’re not using this yet, now you are.
 
