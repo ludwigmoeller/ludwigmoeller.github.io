@@ -158,8 +158,7 @@
 
 <div class="row">
   <button onclick="toggleTheme()">🌙 / ☀️ Theme</button>
-  <input type="file" accept=".zip" onchange="importTemplateZip(event)" />
-  <span class="muted">Optional: import a local PrintDeployment.zip. Otherwise the tool loads ./PrintDeployment.zip</span>
+  <span class="muted">The tool loads ./PrintDeployment.zip from this folder.</span>
 </div>
 
 <h2>Add server</h2>
@@ -193,7 +192,6 @@
 <textarea id="output" readonly></textarea>
 
 <div class="row">
-  <button onclick="copyPreview()">Copy preview</button>
   <button onclick="downloadPackage()">Download PSADT package</button>
 </div>
 

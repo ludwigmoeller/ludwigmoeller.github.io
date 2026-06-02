@@ -340,7 +340,7 @@ async function getTemplateZipBlob() {
   const response = await fetch("./PrintDeployment.zip");
 
   if (!response.ok) {
-    throw new Error("Could not load ./PrintDeployment.zip. Upload a local zip or place PrintDeployment.zip next to index.html.");
+    throw new Error("Could not load ./PrintDeployment.zip. Place PrintDeployment.zip next to index.html.");
   }
 
   return await response.blob();
