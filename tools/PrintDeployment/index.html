@@ -1,0 +1,97 @@
+---
+layout: page
+title: Print Deployment Generator
+permalink: /tools/printdeployment/
+---
+
+<div class="pd-tool">
+  <h1>Print Deployment Generator</h1>
+  <p class="pd-muted">Build a configured PSADT printer deployment package directly in the browser.</p>
+
+  <section class="pd-card">
+    <h2>Add server</h2>
+    <div class="pd-row">
+      <input id="serverName" type="text" placeholder="print01.contoso.com" autocomplete="off">
+      <button id="addServerBtn" type="button">Add server</button>
+    </div>
+  </section>
+
+  <section class="pd-card">
+    <h2>Add printer</h2>
+    <div class="pd-row">
+      <select id="serverSelect"></select>
+      <input id="printerName" type="text" placeholder="Printer share name" autocomplete="off">
+      <button id="addPrinterBtn" type="button">Add printer</button>
+    </div>
+  </section>
+
+  <div class="pd-grid">
+    <section class="pd-card">
+      <h2>Editor</h2>
+      <div id="editor" class="pd-editor"></div>
+    </section>
+
+    <section class="pd-card">
+      <h2>Visualizer</h2>
+      <div id="visualizer" class="pd-visualizer"></div>
+    </section>
+  </div>
+
+  <section class="pd-card">
+    <h2>Generated PowerShell data</h2>
+    <textarea id="generatedOutput" readonly></textarea>
+    <div class="pd-row pd-actions">
+      <button id="copyBtn" type="button">Copy to clipboard</button>
+      <button id="downloadBtn" type="button">Download configured PSADT package</button>
+    </div>
+    <p id="status" class="pd-muted"></p>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="{{ '/tools/printdeployment/printdeployment.js' | relative_url }}"></script>
+
+<style>
+  .pd-tool input, .pd-tool select, .pd-tool button, .pd-tool textarea {
+    border: 1px solid var(--border-color, #3a3a3a);
+    border-radius: .35rem;
+    padding: .55rem .7rem;
+  }
+  .pd-tool input, .pd-tool select, .pd-tool textarea {
+    background: var(--main-bg, #111);
+    color: var(--text-color, #ddd);
+  }
+  .pd-tool button { cursor: pointer; }
+  .pd-muted { opacity: .75; }
+  .pd-row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .pd-row input { min-width: 260px; }
+  .pd-row select { min-width: 260px; }
+  .pd-card {
+    border: 1px solid var(--border-color, #303030);
+    border-radius: .5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+    background: var(--card-bg, rgba(255,255,255,.03));
+  }
+  .pd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 900px) { .pd-grid { grid-template-columns: 1fr; } }
+  .pd-server, .pd-printer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .4rem .2rem;
+  }
+  .pd-printer { margin-left: 1.6rem; }
+  .pd-pill { opacity: .8; font-size: .9rem; }
+  .pd-remove { padding: .25rem .55rem !important; }
+  .pd-empty { opacity: .65; font-style: italic; }
+  .pd-visualizer-tree { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  #generatedOutput {
+    width: 100%;
+    min-height: 220px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre;
+  }
+  .pd-actions { margin-top: .5rem; }
+</style>
