@@ -1,97 +1,205 @@
----
-layout: page
-title: Print Deployment Generator
-permalink: /tools/printdeployment/
----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Print Deployment Generator</title>
 
-<div class="pd-tool">
-  <h1>Print Deployment Generator</h1>
-  <p class="pd-muted">Build a configured PSADT printer deployment package directly in the browser.</p>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --panel: #f5f5f5;
+      --border: #cccccc;
+      --hover: #e0e0e0;
+      --muted: #666666;
+    }
 
-  <section class="pd-card">
-    <h2>Add server</h2>
-    <div class="pd-row">
-      <input id="serverName" type="text" placeholder="print01.contoso.com" autocomplete="off">
-      <button id="addServerBtn" type="button">Add server</button>
-    </div>
-  </section>
+    body.dark {
+      --bg: #0f1115;
+      --text: #e6e6e6;
+      --panel: #1b1e24;
+      --border: #333;
+      --hover: #2f3542;
+      --muted: #aaaaaa;
+    }
 
-  <section class="pd-card">
-    <h2>Add printer</h2>
-    <div class="pd-row">
-      <select id="serverSelect"></select>
-      <input id="printerName" type="text" placeholder="Printer share name" autocomplete="off">
-      <button id="addPrinterBtn" type="button">Add printer</button>
-    </div>
-  </section>
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui;
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
 
-  <div class="pd-grid">
-    <section class="pd-card">
-      <h2>Editor</h2>
-      <div id="editor" class="pd-editor"></div>
-    </section>
+    input, select, textarea {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px;
+      border-radius: 4px;
+    }
 
-    <section class="pd-card">
-      <h2>Visualizer</h2>
-      <div id="visualizer" class="pd-visualizer"></div>
-    </section>
-  </div>
+    textarea {
+      width: 100%;
+      height: 280px;
+      font-family: ui-monospace, monospace;
+    }
 
-  <section class="pd-card">
-    <h2>Generated PowerShell data</h2>
-    <textarea id="generatedOutput" readonly></textarea>
-    <div class="pd-row pd-actions">
-      <button id="copyBtn" type="button">Copy to clipboard</button>
-      <button id="downloadBtn" type="button">Download configured PSADT package</button>
-    </div>
-    <p id="status" class="pd-muted"></p>
-  </section>
+    button {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--hover);
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      padding: 12px;
+      border-radius: 6px;
+    }
+
+    .tree-server {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .tree-printer {
+      margin-left: 24px;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .tree-server input,
+    .tree-printer input {
+      border: none;
+      background: transparent;
+      color: inherit;
+      font-family: inherit;
+      width: 260px;
+    }
+
+    .tree-server input:focus,
+    .tree-printer input:focus {
+      outline: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .print-preview {
+      display: flex;
+      background: #1e1e1e;
+      color: #ffffff;
+      border-radius: 6px;
+      overflow-x: auto;
+      min-height: 140px;
+    }
+
+    .print-column {
+      min-width: 300px;
+      border-right: 1px solid #333;
+    }
+
+    .print-item {
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      cursor: default;
+    }
+
+    .print-item:hover {
+      background: #333;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+
+    .danger {
+      color: #ff8888;
+    }
+
+    .success {
+      color: #7ee787;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Print Deployment Generator</h1>
+
+<div class="row">
+  <button onclick="toggleTheme()">🌙 / ☀️ Theme</button>
+  <input type="file" accept=".zip" onchange="importTemplateZip(event)" />
+  <span class="muted">Optional: import a local PrintDeployment.zip. Otherwise the tool loads ./PrintDeployment.zip</span>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="{{ '/tools/printdeployment/printdeployment.js' | relative_url }}"></script>
+<h2>Add server</h2>
+<div class="row">
+  <input id="serverName" placeholder="Print server, e.g. p-rps01.bdo.local" />
+  <button onclick="addServer()">Add server</button>
+</div>
 
-<style>
-  .pd-tool input, .pd-tool select, .pd-tool button, .pd-tool textarea {
-    border: 1px solid var(--border-color, #3a3a3a);
-    border-radius: .35rem;
-    padding: .55rem .7rem;
-  }
-  .pd-tool input, .pd-tool select, .pd-tool textarea {
-    background: var(--main-bg, #111);
-    color: var(--text-color, #ddd);
-  }
-  .pd-tool button { cursor: pointer; }
-  .pd-muted { opacity: .75; }
-  .pd-row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
-  .pd-row input { min-width: 260px; }
-  .pd-row select { min-width: 260px; }
-  .pd-card {
-    border: 1px solid var(--border-color, #303030);
-    border-radius: .5rem;
-    padding: 1rem;
-    margin: 1rem 0;
-    background: var(--card-bg, rgba(255,255,255,.03));
-  }
-  .pd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  @media (max-width: 900px) { .pd-grid { grid-template-columns: 1fr; } }
-  .pd-server, .pd-printer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem;
-    padding: .4rem .2rem;
-  }
-  .pd-printer { margin-left: 1.6rem; }
-  .pd-pill { opacity: .8; font-size: .9rem; }
-  .pd-remove { padding: .25rem .55rem !important; }
-  .pd-empty { opacity: .65; font-style: italic; }
-  .pd-visualizer-tree { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-  #generatedOutput {
-    width: 100%;
-    min-height: 220px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    white-space: pre;
-  }
-  .pd-actions { margin-top: .5rem; }
-</style>
+<h2>Add printer</h2>
+<div class="row">
+  <select id="serverSelect"></select>
+  <input id="printerName" placeholder="Printer share name, e.g. Cloudprint_farve" />
+  <button onclick="addPrinter()">Add printer</button>
+</div>
+
+<div class="layout">
+
+  <div class="panel">
+    <h2>Editor</h2>
+    <div id="tree"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Visualizer</h2>
+    <div id="preview"></div>
+  </div>
+
+</div>
+
+<h2>Generated PowerShell Preview</h2>
+<textarea id="output" readonly></textarea>
+
+<div class="row">
+  <button onclick="copyPreview()">Copy preview</button>
+  <button onclick="downloadPackage()">Download PSADT package</button>
+</div>
+
+<div id="status" class="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
