@@ -1,6 +1,6 @@
 ---
 title: Deploying On-Prem Printers to Entra ID Joined Devices
-date: 2026-02-01
+date: 2026-06-02
 categories: [Intune, Printing]
 tags: [intune, entra-id, printing, psadt, universal-print, win32-apps]
 toc: true
@@ -158,7 +158,7 @@ Manually editing printer names, server names, detection rules, and PowerShell sc
 
 To make the process easier, I built a deployment generator:
 
-👉 https://techwithludwig.com/tools/PrintDeployment/
+👉 [Print Deployment Generator](https://techwithludwig.com/tools/PrintDeployment/)
 
 The tool allows you to:
 
