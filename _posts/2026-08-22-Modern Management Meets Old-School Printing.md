@@ -32,8 +32,8 @@ For Windows users, support is built into the operating system. There is no tradi
 
 Universal Print does not make the physical printer disappear. It might, however, reduce the urge to take it into a field with two colleagues and a baseball bat, which is probably as close to a measurable IT benefit as any printer platform can offer.
 
-[![The Office Space printer scene](https://media.giphy.com/media/l2SpMDbxk09bYpGPC/giphy.gif)](https://giphy.com/gifs/foxhomeent-l2SpMDbxk09bYpGPC)
-*Office Space, demonstrating the traditional printer-remediation process.(https://giphy.com/gifs/foxhomeent-l2SpMDbxk09bYpGPC).*
+[![The Office Space printer scene](https://media.giphy.com/media/l2SpMDbxk09bYpGPC/giphy.gif)]
+*Office Space, demonstrating the traditional printer-remediation process.
 
 More practically, it removes quite a bit of the infrastructure normally surrounding it.
 
