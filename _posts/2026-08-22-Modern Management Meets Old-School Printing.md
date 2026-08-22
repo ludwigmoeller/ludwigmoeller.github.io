@@ -2,7 +2,7 @@
 
 Everyone hates printers. At least every IT professional does—and if anyone tells you otherwise, they are lying.
 
-The idea for this post came from a day when we were working together at Apento. We met up, talked shop and, for some reason, spent a surprisingly large part of the day talking about 3D printers.
+The idea for this post came from one of those rare days when several colleagues and I were all working from the same office. Somewhere between actual work and the usual technical rabbit holes, a surprisingly large part of the conversation ended up being about 3D printers.
 
 That made me think it was probably time to write about a slightly less exciting kind of printer: the one that insists it is offline while sitting three metres away from you with a perfectly healthy network connection.
 
