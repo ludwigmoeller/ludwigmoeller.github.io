@@ -1,4 +1,4 @@
-Everyone hates printers. At least every IT professional does—and if anyone tells you otherwise, they are lying.
+Everyone hates printers. At least every IT professional does, and if anyone tells you otherwise, they are lying.
 
 The idea for this post came from one of those rare days when several colleagues and I were all working from the same office. Somewhere between actual work and the usual technical rabbit holes, a surprisingly large part of the conversation ended up being about 3D printers.
 
@@ -8,7 +8,7 @@ So, naturally, I went out and bought a Xerox C255a Color MFP.
 
 To my amazement, it has Universal Print built in. No dedicated print server, no extra connector and no hunting for drivers on every client. I registered the printer directly with my Microsoft 365 tenant and had it available to users shortly afterwards.
 
-The printer was not sponsored by Xerox—but Xerox, if you happen to read this, feel free to reach out. Also, please ignore the first sentence about everyone hating printers.
+The printer was not sponsored by Xerox, but Xerox, if you happen to read this, feel free to reach out. Also, please ignore the first sentence about everyone hating printers.
 
 ## Table of contents
 
@@ -30,7 +30,12 @@ Instead of users connecting to a traditional on-premises print server, printers 
 
 For Windows users, support is built into the operating system. There is no traditional printer driver package that must be installed on every endpoint just to get started.
 
-It does not make the physical printer disappear—and I am told that setting fire to it remains frowned upon—but it does remove quite a bit of the infrastructure normally surrounding it.
+Universal Print does not make the physical printer disappear. It might, however, reduce the urge to take it into a field with two colleagues and a baseball bat, which is probably as close to a measurable IT benefit as any printer platform can offer.
+[![The Office Space printer scene](https://media.giphy.com/media/l2SpMDbxk09bYpGPC/giphy.gif)](https://giphy.com/gifs/foxhomeent-l2SpMDbxk09bYpGPC)
+
+*Office Space, demonstrating the traditional printer-remediation process. GIF via [20th Century Fox Home Entertainment on GIPHY](https://giphy.com/gifs/foxhomeent-l2SpMDbxk09bYpGPC).*
+
+More practically, it removes quite a bit of the infrastructure normally surrounding it.
 
 ## Universal Print-ready printer or connector?
 
@@ -115,7 +120,7 @@ After installation, the user opens **System Settings > Universal Print**, allows
 
 Once added, they appear in the standard macOS print dialog and work like other installed printers. The user's day-to-day workflow remains **File > Print**, which is exactly how it should be.
 
-There is one important management detail: by default, macOS requires administrator privileges to install or modify printers. If your users are standard users—and they probably should be—you can change this centrally. Microsoft provides an [example for allowing non-administrators to install printers](https://learn.microsoft.com/en-us/universal-print/macos/universal-print-macos-guide-remove-admin-requirement?tabs=updated) by modifying the CUPS authorization policy. Because that change affects who may add or modify printers locally, test and deploy it deliberately through your MDM solution.
+There is one important management detail: by default, macOS requires administrator privileges to install or modify printers. If your users are standard users - and they probably should be - you can change this centrally. Microsoft provides an [example for allowing non-administrators to install printers](https://learn.microsoft.com/en-us/universal-print/macos/universal-print-macos-guide-remove-admin-requirement?tabs=updated) by modifying the CUPS authorization policy. Because that change affects who may add or modify printers locally, test and deploy it deliberately through your MDM solution.
 
 Universal Print also has a tenant-wide macOS compatibility setting:
 
@@ -145,7 +150,7 @@ Those jobs are pooled across the tenant. An individual user is not restricted to
 
 Microsoft states that printing can continue if the organization exceeds its included volume, but the administrator receives an alert and the organization must purchase sufficient additional capacity for its ongoing usage. Usage can be monitored under **Universal Print > Usage and reports**.
 
-For many smaller organizations, 2,000 documents per month is quite a lot—particularly because a 40-page report is still one print job. As always, check Microsoft's [current licensing and print-volume documentation](https://learn.microsoft.com/en-us/universal-print/get-access-to-universal-print) before designing around a specific allowance.
+For many smaller organizations, 2,000 documents per month is quite a lot, particularly because a 40-page report is still one print job. As always, check Microsoft's [current licensing and print-volume documentation](https://learn.microsoft.com/en-us/universal-print/get-access-to-universal-print) before designing around a specific allowance.
 
 ## The verdict
 
@@ -155,10 +160,10 @@ With a Universal Print-ready printer, the process was essentially:
 
 1. Register the printer with the tenant.
 2. Create a share and assign access.
-3. Let users discover the printer—or deploy it automatically with Intune.
+3. Let users discover the printer or deploy it automatically with Intune.
 
 There are still things to consider. Printing depends on internet access, print jobs pass through Microsoft's cloud service, macOS requires an additional app, and older printers need a continuously available connector. Secure release also introduces an extra user step by design.
 
 Even with those caveats, Universal Print removes the traditional print server from many environments, integrates with Microsoft Entra ID groups and Intune, works across Windows and macOS, and includes a secure-release option without requiring a separate print-management platform.
 
-So, the short version is this: Universal Print is straightforward to configure, straightforward to manage and straightforward for users. That does not make printers lovable—but it makes them slightly harder to hate.
+So, the short version is this: Universal Print is straightforward to configure, straightforward to manage and straightforward for users. That does not make printers lovable, but it makes them slightly harder to hate.
