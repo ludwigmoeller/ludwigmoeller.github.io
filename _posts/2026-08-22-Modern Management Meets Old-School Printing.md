@@ -1,5 +1,3 @@
-# Microsoft Universal Print: Printing Without the Drama
-
 Everyone hates printers. At least every IT professional does—and if anyone tells you otherwise, they are lying.
 
 The idea for this post came from one of those rare days when several colleagues and I were all working from the same office. Somewhere between actual work and the usual technical rabbit holes, a surprisingly large part of the conversation ended up being about 3D printers.
