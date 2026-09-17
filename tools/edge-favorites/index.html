@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Managed Favorites Generator</title>
 
   <style>
@@ -11,26 +12,34 @@
       --panel: #f5f5f5;
       --border: #cccccc;
       --hover: #e0e0e0;
+      --muted: #666666;
     }
 
     body.dark {
       --bg: #0f1115;
       --text: #e6e6e6;
       --panel: #1b1e24;
-      --border: #333;
+      --border: #333333;
       --hover: #2f3542;
+      --muted: #aaaaaa;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: system-ui;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       max-width: 1200px;
       margin: auto;
       padding: 20px;
     }
 
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       background: var(--panel);
       color: var(--text);
       border: 1px solid var(--border);
@@ -41,7 +50,8 @@
     textarea {
       width: 100%;
       height: 260px;
-      font-family: ui-monospace, monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      resize: vertical;
     }
 
     button {
@@ -51,6 +61,15 @@
       padding: 6px 10px;
       border-radius: 4px;
       cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--hover);
+    }
+
+    button:disabled {
+      cursor: default;
+      opacity: 0.75;
     }
 
     .row {
@@ -104,6 +123,19 @@
       border-radius: 6px;
     }
 
+    .output-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
     /* Visualizer */
 
     .edge-menu {
@@ -116,7 +148,7 @@
 
     .edge-column {
       min-width: 240px;
-      border-right: 1px solid #333;
+      border-right: 1px solid #333333;
     }
 
     .edge-item {
@@ -127,7 +159,13 @@
     }
 
     .edge-item:hover {
-      background: #333;
+      background: #333333;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -137,8 +175,12 @@
 <h1>Managed Favorites Generator</h1>
 
 <div class="row">
-  <button onclick="toggleTheme()">🌙 / ☀️ Theme</button>
-  <input type="file" accept=".json" onchange="importJson(event)" />
+  <button type="button" onclick="toggleTheme()">🌙 / ☀️ Theme</button>
+
+  <label>
+    Import Windows JSON:
+    <input type="file" accept=".json,application/json" onchange="importJson(event)" />
+  </label>
 </div>
 
 <h2>Top-level name</h2>
@@ -149,7 +191,7 @@
   <input id="itemName" placeholder="Name" />
   <input id="itemUrl" placeholder="URL (leave empty = folder)" />
   <select id="parentSelect"></select>
-  <button onclick="addItem()">Add</button>
+  <button type="button" onclick="addItem()">Add</button>
 </div>
 
 <div class="layout">
@@ -173,8 +215,17 @@
 
 <h2>Generated JSON</h2>
 <textarea id="output" readonly></textarea>
-<button onclick="copyJson()">Copy to clipboard</button>
-<button onclick="downloadJson()">Download JSON</button>
+
+<div class="output-actions">
+  <button type="button" onclick="copyJson(this)">Copy JSON</button>
+  <button type="button" onclick="downloadWindowsJson()">Download for Windows (.json)</button>
+  <button type="button" onclick="downloadMacPlist()">Download for macOS (.plist)</button>
+</div>
+
+<p class="hint">
+  macOS: deploy the downloaded file with an Intune macOS Preference file profile
+  using the preference domain <strong>com.microsoft.Edge</strong>.
+</p>
 
 <script src="app.js"></script>
 </body>
