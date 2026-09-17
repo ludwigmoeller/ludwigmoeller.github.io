@@ -33,6 +33,97 @@ function getParent(path) {
   return ref;
 }
 
+function getManagedFavorites() {
+  return [{ toplevel_name: toplevelInput.value }, ...data];
+}
+
+function getSafeFileName() {
+  return (toplevelInput.value || "edge-managed-favorites")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "edge-managed-favorites";
+}
+
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url);
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function valueToPlistXml(value, indent = 0) {
+  const spacing = "  ".repeat(indent);
+
+  if (Array.isArray(value)) {
+    let xml = `${spacing}<array>\n`;
+
+    value.forEach(item => {
+      xml += valueToPlistXml(item, indent + 1);
+    });
+
+    xml += `${spacing}</array>\n`;
+    return xml;
+  }
+
+  if (value !== null && typeof value === "object") {
+    let xml = `${spacing}<dict>\n`;
+
+    Object.entries(value).forEach(([key, itemValue]) => {
+      xml += `${"  ".repeat(indent + 1)}<key>${escapeXml(key)}</key>\n`;
+      xml += valueToPlistXml(itemValue, indent + 1);
+    });
+
+    xml += `${spacing}</dict>\n`;
+    return xml;
+  }
+
+  if (typeof value === "boolean") {
+    return `${spacing}<${value ? "true" : "false"}/>\n`;
+  }
+
+  if (typeof value === "number") {
+    return `${spacing}<integer>${value}</integer>\n`;
+  }
+
+  return `${spacing}<string>${escapeXml(value)}</string>\n`;
+}
+
+function generateMacPlist() {
+  let plist = "<key>ManagedFavorites</key>\n";
+  plist += valueToPlistXml(getManagedFavorites());
+  return plist;
+}
+
+function setButtonFeedback(button, message, resetText, delay = 1500) {
+  if (!button) return;
+
+  button.textContent = message;
+  button.disabled = true;
+
+  window.setTimeout(() => {
+    button.textContent = resetText;
+    button.disabled = false;
+  }, delay);
+}
+
 /* ---------- Core ---------- */
 
 function addItem() {
@@ -92,8 +183,10 @@ function dropInto(targetPath, intoFolder) {
 rootDrop.ondragover = e => e.preventDefault();
 rootDrop.ondrop = () => {
   if (!dragSourcePath) return;
+
   const srcParent = getParent(dragSourcePath);
   const item = srcParent.splice(dragSourcePath.at(-1), 1)[0];
+
   data.push(item);
   dragSourcePath = null;
   refresh();
@@ -127,7 +220,10 @@ function renderTree() {
       `;
 
       tree.appendChild(div);
-      if (item.children) walk(item.children, p);
+
+      if (item.children) {
+        walk(item.children, p);
+      }
     });
   }
 
@@ -157,6 +253,7 @@ function renderPreview() {
           while (menu.children.length > [...menu.children].indexOf(col) + 1) {
             menu.removeChild(menu.lastChild);
           }
+
           menu.appendChild(buildColumn(item.children));
         };
       }
@@ -172,11 +269,7 @@ function renderPreview() {
 }
 
 function renderJson() {
-  output.value = JSON.stringify(
-    [{ toplevel_name: toplevelInput.value }, ...data],
-    null,
-    2
-  );
+  output.value = JSON.stringify(getManagedFavorites(), null, 2);
 }
 
 function updateParents() {
@@ -186,6 +279,7 @@ function updateParents() {
     items.forEach((item, index) => {
       if (item.children) {
         const p = path + index;
+
         parentSelect.innerHTML += `<option value="${p}">${item.name}</option>`;
         walk(item.children, p + ".");
       }
@@ -204,7 +298,45 @@ function refresh() {
 
 /* ---------- Actions ---------- */
 
-function downloadJson() {
+async function copyJson(button) {
+  const json = output.value;
+
+  if (!json.trim()) {
+    alert("There is no JSON to copy.");
+    return;
+  }
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(json);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = json;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      textarea.style.pointerEvents = "none";
+
+      document.body.appendChild(textarea);
+      textarea.select();
+      textarea.setSelectionRange(0, textarea.value.length);
+
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textarea);
+
+      if (!copied) {
+        throw new Error("Browser copy command failed.");
+      }
+    }
+
+    setButtonFeedback(button, "Copied!", "Copy JSON");
+  } catch (error) {
+    console.error("Copy failed:", error);
+    setButtonFeedback(button, "Copy failed", "Copy JSON", 2000);
+  }
+}
+
+function downloadWindowsJson() {
   const json = output.value;
 
   if (!json.trim()) {
@@ -212,41 +344,64 @@ function downloadJson() {
     return;
   }
 
-  const safeName = (toplevelInput.value || "edge-managed-favorites")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  downloadFile(
+    json,
+    `${getSafeFileName()}-windows.json`,
+    "application/json"
+  );
+}
 
-  const blob = new Blob([json], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
+function downloadMacPlist() {
+  const plist = generateMacPlist();
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${safeName || "edge-managed-favorites"}.json`;
+  if (!plist.trim()) {
+    alert("There is no macOS configuration to download.");
+    return;
+  }
 
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  /*
+    Microsoft Intune's macOS Preference file profile expects only the
+    key/value pairs in the uploaded file, without the XML header,
+    <plist>, or outer <dict> wrapper.
 
-  URL.revokeObjectURL(url);
+    Preference domain in Intune: com.microsoft.Edge
+  */
+  downloadFile(
+    plist,
+    "com.microsoft.Edge.plist",
+    "application/xml"
+  );
 }
 
 /* ---------- Import ---------- */
 
 function importJson(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
   const reader = new FileReader();
+
   reader.onload = ev => {
-    const parsed = JSON.parse(ev.target.result);
-    if (!parsed?.[0]?.toplevel_name) {
-      alert("Invalid Managed Favorites JSON");
-      return;
+    try {
+      const parsed = JSON.parse(ev.target.result);
+
+      if (!Array.isArray(parsed) || !parsed?.[0]?.toplevel_name) {
+        alert("Invalid Managed Favorites JSON");
+        return;
+      }
+
+      toplevelInput.value = parsed[0].toplevel_name;
+      data = parsed.slice(1);
+      refresh();
+    } catch (error) {
+      console.error("Import failed:", error);
+      alert("The selected file is not valid JSON.");
+    } finally {
+      e.target.value = "";
     }
-    toplevelInput.value = parsed[0].toplevel_name;
-    data = parsed.slice(1);
-    refresh();
   };
-  reader.readAsText(e.target.files[0]);
+
+  reader.readAsText(file);
 }
 
 toplevelInput.addEventListener("input", renderJson);
